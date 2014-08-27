@@ -13,7 +13,7 @@
 #include <node.h>
 #include "v8_value_hasher.h"
 
-typedef unordered_set<v8::Persistent<v8::Value> > SetType;
+typedef unordered_set<v8::Persistent<v8::Value>, v8_value_hash, v8_value_equal_to> SetType;
 
 class NodeSet : public node::ObjectWrap {
  public:
