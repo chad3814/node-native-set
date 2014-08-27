@@ -152,10 +152,14 @@ class NodeSet : public node::ObjectWrap {
   // set.add(key, value) : this
   static v8::Handle<v8::Value> Add(const v8::Arguments &args);
 
-  // set.entries() : []
-  // set.keys() : []
-  // set.values() : []
+  // set.entries() : iterator
   static v8::Handle<v8::Value> Entries(const v8::Arguments &args);
+
+  // set.keys() : iterator
+  static v8::Handle<v8::Value> Keys(const v8::Arguments &args);
+
+  // set.values() : iterator
+  static v8::Handle<v8::Value> Values(const v8::Arguments &args);
 
   // set.delete(value) : boolean
   static v8::Handle<v8::Value> Delete(const v8::Arguments &args);
@@ -164,7 +168,7 @@ class NodeSet : public node::ObjectWrap {
   static v8::Handle<v8::Value> Clear(const v8::Arguments &args);
 
   // set.size() : number of elements
-  static v8::Handle<v8::Value> Size(const v8::Arguments &args);
+  static v8::Handle<v8::Value> Size(v8::Local<v8::String> property, const v8::AccessorInfo &info);
 
   // set.rehash(buckets) : undefined
   static v8::Handle<v8::Value> Rehash(const v8::Arguments &args);

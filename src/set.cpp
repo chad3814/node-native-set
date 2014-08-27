@@ -1,8 +1,6 @@
 #include "set.h"
+#include "iterator.h"
 #include <iostream>
-#ifndef __APPLE__
-#include <unordered_set>
-#endif
 
 using namespace v8;
 
@@ -14,12 +12,11 @@ void NodeSet::init(Handle<Object> exports) {
     auto prototype = constructor->PrototypeTemplate();
     prototype->Set("add", FunctionTemplate::New(Add)->GetFunction());
     prototype->Set("has", FunctionTemplate::New(Has)->GetFunction());
-    prototype->Set("entries", FunctionTemplate::New(Entries)->GetFunction()); // should return an iterator for key+value (where both are the set value entry)
-    prototype->Set("keys", FunctionTemplate::New(Entries)->GetFunction()); // should return an iterator for key (where it is the as the set value entry), same as entries for now
-    prototype->Set("values", FunctionTemplate::New(Entries)->GetFunction()); // should return an iterator for value, same as entries for now
+    prototype->Set("entries", FunctionTemplate::New(Entries)->GetFunction());
+    prototype->Set("keys", FunctionTemplate::New(Keys)->GetFunction());
+    prototype->Set("values", FunctionTemplate::New(Values)->GetFunction());
     prototype->Set("delete", FunctionTemplate::New(Delete)->GetFunction());
     prototype->Set("clear", FunctionTemplate::New(Clear)->GetFunction());
-    prototype->Set("size", FunctionTemplate::New(Size)->GetFunction()); // should be an accessor
     prototype->Set("forEach", FunctionTemplate::New(ForEach)->GetFunction());
     prototype->Set("rehash", FunctionTemplate::New(Rehash)->GetFunction());
     prototype->Set("reserve", FunctionTemplate::New(Reserve)->GetFunction());
@@ -51,6 +48,7 @@ Handle<Value> NodeSet::Constructor(const Arguments& args) {
         obj = new NodeSet();
     }
 
+    args.This()->SetAccessor(String::New("size"), Size);
     obj->Wrap(args.This());
 
     return args.This();
@@ -107,14 +105,29 @@ Handle<Value> NodeSet::Entries(const Arguments& args) {
 
     NodeSet *obj = ObjectWrap::Unwrap<NodeSet>(args.This());
 
-    Local<Array> array = Array::New();
+    Local<Object> iter = SingleNodeIterator::init(SingleNodeIterator::KEY_TYPE | SingleNodeIterator::VALUE_TYPE, obj->set.begin(), obj->set.end());
 
-    int i = 0;
-    for(auto itr = obj->set.begin(); itr != obj->set.end(); ++itr, ++i) {
-        array->Set(Integer::New(i), *itr);
-    }
+    return scope.Close(iter);
+}
 
-    return scope.Close(array);
+Handle<Value> NodeSet::Keys(const Arguments& args) {
+    HandleScope scope;
+
+    NodeSet *obj = ObjectWrap::Unwrap<NodeSet>(args.This());
+
+    Local<Object> iter = SingleNodeIterator::init(SingleNodeIterator::KEY_TYPE, obj->set.begin(), obj->set.end());
+
+    return scope.Close(iter);
+}
+
+Handle<Value> NodeSet::Values(const Arguments& args) {
+    HandleScope scope;
+
+    NodeSet *obj = ObjectWrap::Unwrap<NodeSet>(args.This());
+
+    Local<Object> iter = SingleNodeIterator::init(SingleNodeIterator::VALUE_TYPE, obj->set.begin(), obj->set.end());
+
+    return scope.Close(iter);
 }
 
 Handle<Value> NodeSet::Delete(const Arguments& args) {
@@ -157,12 +170,10 @@ Handle<Value> NodeSet::Clear(const Arguments& args) {
     return scope.Close(Undefined());
 }
 
-Handle<Value> NodeSet::Size(const Arguments& args) {
-    HandleScope scope;
+Handle<Value> NodeSet::Size(Local<String> property, const AccessorInfo &info) {
+    NodeSet *obj = ObjectWrap::Unwrap<NodeSet>(info.Holder());
 
-    NodeSet *obj = ObjectWrap::Unwrap<NodeSet>(args.This());
-
-    return scope.Close(Integer::New(obj->set.size()));
+    return Integer::New(obj->set.size());
 }
 
 Handle<Value> NodeSet::Rehash(const Arguments& args) {
