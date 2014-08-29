@@ -40,6 +40,10 @@ Handle<Value> SingleNodeIterator::GetDone(Local<String> property, const Accessor
 Handle<Value> SingleNodeIterator::GetValue(Local<String> property, const AccessorInfo &info) {
     SingleNodeIterator *obj = ObjectWrap::Unwrap<SingleNodeIterator>(info.Holder());
 
+    if (obj->iter == obj->end) {
+        return Undefined();
+    }
+
     return *(obj->iter);
 }
 
@@ -48,6 +52,10 @@ v8::Handle<v8::Value> SingleNodeIterator::Next(const v8::Arguments &args) {
     HandleScope scope;
 
     SingleNodeIterator *obj = ObjectWrap::Unwrap<SingleNodeIterator >(args.This());
+
+    if (obj->iter == obj->end) {
+        return scope.Close(Undefined());
+    }
 
     obj->iter++;
 
