@@ -54,10 +54,10 @@ v8::Handle<v8::Value> SingleNodeIterator::Next(const v8::Arguments &args) {
     SingleNodeIterator *obj = ObjectWrap::Unwrap<SingleNodeIterator >(args.This());
 
     if (obj->iter == obj->end) {
-        return scope.Close(Undefined());
+        return scope.Close(args.This());
     }
 
     obj->iter++;
 
-    return scope.Close(Undefined());
+    return scope.Close(args.This());
 }
