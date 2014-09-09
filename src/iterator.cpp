@@ -36,7 +36,7 @@ SingleNodeIterator::SingleNodeIterator(SetType::iterator new_iter, SetType::iter
 Handle<Value> SingleNodeIterator::GetDone(Local<String> property, const AccessorInfo &info) {
     SingleNodeIterator *obj = ObjectWrap::Unwrap<SingleNodeIterator>(info.Holder());
 
-    std::cout << "check if SignleNodeIterator " << obj->my_number << " is done: " << (obj->iter == obj->end) << "\n";
+    std::cout << "check if SingleNodeIterator " << obj->my_number << " is done: " << (obj->iter == obj->end) << "\n";
     return Boolean::New(obj->iter == obj->end);
 }
 
