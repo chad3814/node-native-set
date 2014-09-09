@@ -14,11 +14,12 @@ public:
     const static int VALUE_TYPE = 1 << 1;
 
 private:
-    SingleNodeIterator(SetType::iterator new_iter, SetType::iterator new_end);
+    SingleNodeIterator(SetType::iterator new_iter, SetType::iterator new_end, int number);
     //~SingleNodeIterator();
 
     SetType::iterator iter;
     SetType::iterator end;
+    int my_number;
 
     // iterator.done : boolean
     static v8::Handle<v8::Value> GetDone(v8::Local<v8::String> property, const v8::AccessorInfo &info);
