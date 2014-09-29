@@ -8,17 +8,20 @@
 
 class SingleNodeIterator : public node::ObjectWrap {
 public:
-    static v8::Local<v8::Object> init(int type, SetType::iterator new_iter, SetType::iterator new_end);
+    static void init();
+    static v8::Local<v8::Object> New(int type, SetType::const_iterator new_iter, SetType::const_iterator new_end);
 
     const static int KEY_TYPE = 1;
     const static int VALUE_TYPE = 1 << 1;
 
 private:
-    SingleNodeIterator(SetType::iterator new_iter, SetType::iterator new_end);
+    SingleNodeIterator(SetType::const_iterator new_iter, SetType::const_iterator new_end);
     //~SingleNodeIterator();
 
-    SetType::iterator iter;
-    SetType::iterator end;
+    SetType::const_iterator iter;
+    SetType::const_iterator end;
+
+    static v8::Handle<v8::Value> Constructor(const v8::Arguments& args);
 
     // iterator.done : boolean
     static v8::Handle<v8::Value> GetDone(v8::Local<v8::String> property, const v8::AccessorInfo &info);

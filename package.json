@@ -1,6 +1,6 @@
 {
     "name": "es6-native-set",
-    "version": "0.2.5",
+    "version": "0.3.0",
     "description": "Native es6 set for Node",
     "main": "./index.js",
     "keywords": [
@@ -19,8 +19,7 @@
     },
     "license": "MIT",
     "devDependencies": {
-        "test-more": "~0.1.1",
-        "runtests": "~0.1.1"
+        "async": "latest"
     },
     "scripts": {
         "install": "node-gyp configure build",

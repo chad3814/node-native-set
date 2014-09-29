@@ -23,6 +23,8 @@ void NodeSet::init(Handle<Object> exports) {
     prototype->Set("max_load_factor", FunctionTemplate::New(MaxLoadFactor)->GetFunction());
 
     exports->Set(String::NewSymbol("NodeSet"), Persistent<Function>::New(constructor->GetFunction()));
+
+    SingleNodeIterator::init();
 }
 
 NodeSet::NodeSet() {}
@@ -105,7 +107,7 @@ Handle<Value> NodeSet::Entries(const Arguments& args) {
 
     NodeSet *obj = ObjectWrap::Unwrap<NodeSet>(args.This());
 
-    Local<Object> iter = SingleNodeIterator::init(SingleNodeIterator::KEY_TYPE | SingleNodeIterator::VALUE_TYPE, obj->set.begin(), obj->set.end());
+    Local<Object> iter = SingleNodeIterator::New(SingleNodeIterator::KEY_TYPE | SingleNodeIterator::VALUE_TYPE, obj->set.begin(), obj->set.end());
 
     return scope.Close(iter);
 }
@@ -115,7 +117,7 @@ Handle<Value> NodeSet::Keys(const Arguments& args) {
 
     NodeSet *obj = ObjectWrap::Unwrap<NodeSet>(args.This());
 
-    Local<Object> iter = SingleNodeIterator::init(SingleNodeIterator::KEY_TYPE, obj->set.begin(), obj->set.end());
+    Local<Object> iter = SingleNodeIterator::New(SingleNodeIterator::KEY_TYPE, obj->set.begin(), obj->set.end());
 
     return scope.Close(iter);
 }
@@ -125,7 +127,7 @@ Handle<Value> NodeSet::Values(const Arguments& args) {
 
     NodeSet *obj = ObjectWrap::Unwrap<NodeSet>(args.This());
 
-    Local<Object> iter = SingleNodeIterator::init(SingleNodeIterator::VALUE_TYPE, obj->set.begin(), obj->set.end());
+    Local<Object> iter = SingleNodeIterator::New(SingleNodeIterator::VALUE_TYPE, obj->set.begin(), obj->set.end());
 
     return scope.Close(iter);
 }
