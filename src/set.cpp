@@ -9,7 +9,7 @@ void NodeSet::init(Handle<Object> exports) {
     constructor->SetClassName(String::NewSymbol("NodeSet"));
     constructor->InstanceTemplate()->SetInternalFieldCount(1);
 
-    auto prototype = constructor->PrototypeTemplate();
+    Local<ObjectTemplate> prototype = constructor->PrototypeTemplate();
     prototype->Set("add", FunctionTemplate::New(Add)->GetFunction());
     prototype->Set("has", FunctionTemplate::New(Has)->GetFunction());
     prototype->Set("entries", FunctionTemplate::New(Entries)->GetFunction());
@@ -30,7 +30,7 @@ NodeSet::NodeSet() {}
 NodeSet::NodeSet(size_t buckets) : set(buckets) {}
 
 NodeSet::~NodeSet() {
-    for(auto itr = this->set.begin(); itr != this->set.end(); ) {
+    for(SetType::const_iterator itr = this->set.begin(); itr != this->set.end(); ) {
         Persistent<Value> value = *itr;
         value.Dispose();
 
@@ -142,7 +142,7 @@ Handle<Value> NodeSet::Delete(const Arguments& args) {
 
     Persistent<Value> value = Persistent<Value>::New(args[0]);
 
-    auto itr = obj->set.find(value);
+    SetType::const_iterator itr = obj->set.find(value);
 
     if(itr == obj->set.end()) {
         return scope.Close(Boolean::New(false)); //do nothing and return false
@@ -160,7 +160,7 @@ Handle<Value> NodeSet::Clear(const Arguments& args) {
 
     NodeSet *obj = ObjectWrap::Unwrap<NodeSet>(args.This());
 
-    for(auto itr = obj->set.begin(); itr != obj->set.end(); ) {
+    for(SetType::const_iterator itr = obj->set.begin(); itr != obj->set.end(); ) {
         Persistent<Value> value = *itr;
         value.Dispose();
 
