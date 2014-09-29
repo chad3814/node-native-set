@@ -49,3 +49,5 @@ iterator.next(); // { done: true, value: undefined }
 set.clear(); // undefined
 set.size; // 0
 ```
+
+This package is made possible because of [Grokker](http://grokker.com/), one of the best places to work. If you are a JS developer looking for a new gig, send me an email at &#x5b;'chad', String.fromCharCode(64), 'grokker', String.fromCharCode(0x2e), 'com'&#x93;.join('').

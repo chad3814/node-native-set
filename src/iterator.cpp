@@ -39,13 +39,7 @@ void SingleNodeIterator::init() {
     value_prototype->Set(String::New("next"), FunctionTemplate::New(Next)->GetFunction());
 }
 
-Handle<Value> SingleNodeIterator::Constructor(const Arguments& args) {
-    return args.This();
-}
-
 Local<Object> SingleNodeIterator::New(int type, SetType::const_iterator new_iter, SetType::const_iterator new_end) {
-    //std::cout << "new\n";
-
     HandleScope scope;
 
     Handle<FunctionTemplate> tmplt;

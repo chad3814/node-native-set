@@ -21,8 +21,6 @@ private:
     SetType::const_iterator iter;
     SetType::const_iterator end;
 
-    static v8::Handle<v8::Value> Constructor(const v8::Arguments& args);
-
     // iterator.done : boolean
     static v8::Handle<v8::Value> GetDone(v8::Local<v8::String> property, const v8::AccessorInfo &info);
 
