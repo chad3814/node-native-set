@@ -71,10 +71,10 @@ Handle<Value> NodeSet::Has(const Arguments& args) {
     SetType::const_iterator itr = obj->set.find(value);
 
     if(itr == obj->set.end()) {
-        return scope.Close(Boolean::New(false));
+        return scope.Close(False());
     }
 
-    return scope.Close(Boolean::New(true));
+    return scope.Close(True());
 }
 
 Handle<Value> NodeSet::Add(const Arguments& args) {
@@ -147,14 +147,15 @@ Handle<Value> NodeSet::Delete(const Arguments& args) {
     SetType::const_iterator itr = obj->set.find(value);
 
     if(itr == obj->set.end()) {
-        return scope.Close(Boolean::New(false)); //do nothing and return false
+        return scope.Close(False()); //do nothing and return false
     }
 
     value.Dispose();
+    value.Clear();
 
     obj->set.erase(itr);
 
-    return scope.Close(Boolean::New(true));
+    return scope.Close(True());
 }
 
 Handle<Value> NodeSet::Clear(const Arguments& args) {
@@ -165,6 +166,7 @@ Handle<Value> NodeSet::Clear(const Arguments& args) {
     for(SetType::const_iterator itr = obj->set.begin(); itr != obj->set.end(); ) {
         Persistent<Value> value = *itr;
         value.Dispose();
+        value.Clear();
 
         itr = obj->set.erase(itr);
     }
@@ -239,8 +241,8 @@ Handle<Value> NodeSet::ForEach(const Arguments& args) {
     SetType::const_iterator itr = obj->set.begin();
 
     while (itr != obj->set.end()) {
-        argv[0] = Persistent<Value>::New(*itr);
-        argv[1] = Persistent<Value>::New(*itr);
+        argv[0] = *itr;
+        argv[1] = *itr;
         cb->Call(Context::GetCurrent()->Global(), argc, argv);
         itr++;
     }
