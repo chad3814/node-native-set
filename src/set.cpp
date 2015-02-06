@@ -41,19 +41,41 @@ NodeSet::~NodeSet() {
 }
 
 Handle<Value> NodeSet::Constructor(const Arguments& args) {
+    HandleScope scope;
     NodeSet *obj;
+    Local<Array> arr;
+    uint32_t i;
+    Persistent<Value> persistent;
+    SetType::const_iterator itr;
 
-    if(args.Length() > 0 && args[0]->IsInt32()) {
-        int buckets = args[0]->Int32Value();
-        obj = new NodeSet(buckets);
+    if(args.Length() > 0) {
+        if (args[0]->IsInt32()) {
+            int buckets = args[0]->Int32Value();
+            obj = new NodeSet(buckets);
+        } else if (args[0]->IsArray()) {
+            arr = Local<Array>::Cast(args[0]);
+            obj = new NodeSet(arr->Length());
+            for (i = 0; i < arr->Length(); i++) {
+                persistent = Persistent<Value>::New(arr->Get(i));
+
+                itr = obj->set.find(persistent);
+                // value doesn't already exists
+                if (itr == obj->set.end()) {
+                    obj->set.insert(persistent);
+                }
+            }
+        } else {
+            obj = new NodeSet();
+        }
     } else {
         obj = new NodeSet();
     }
 
+
     args.This()->SetAccessor(String::New("size"), Size);
     obj->Wrap(args.This());
 
-    return args.This();
+    return scope.Close(args.This());
 }
 
 Handle<Value> NodeSet::Has(const Arguments& args) {
