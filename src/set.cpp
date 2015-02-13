@@ -20,7 +20,6 @@ void NodeSet::init(Handle<Object> exports) {
     prototype->Set("forEach", FunctionTemplate::New(ForEach)->GetFunction());
     prototype->Set("rehash", FunctionTemplate::New(Rehash)->GetFunction());
     prototype->Set("reserve", FunctionTemplate::New(Reserve)->GetFunction());
-    prototype->Set("max_load_factor", FunctionTemplate::New(MaxLoadFactor)->GetFunction());
 
     exports->Set(String::NewSymbol("NodeSet"), Persistent<Function>::New(constructor->GetFunction()));
 
@@ -33,7 +32,7 @@ NodeSet::NodeSet(size_t buckets) : set(buckets) {}
 
 NodeSet::~NodeSet() {
     for(SetType::const_iterator itr = this->set.begin(); itr != this->set.end(); ) {
-        Persistent<Value> value = *itr;
+        Persistent<Value> value = Persistent<Value>::Persistent(*itr);
         value.Dispose();
 
         itr = this->set.erase(itr);
@@ -42,38 +41,50 @@ NodeSet::~NodeSet() {
 
 Handle<Value> NodeSet::Constructor(const Arguments& args) {
     HandleScope scope;
-    NodeSet *obj;
+    NodeSet *obj = new NodeSet();
     Local<Array> arr;
-    uint32_t i;
     Persistent<Value> persistent;
     SetType::const_iterator itr;
+    Local<Function> adder;
+    uint32_t i;
+    Local<String> add = String::New("add");
+    Local<String> next = String::New("next");
+    Local<String> done = String::New("done");
+    Local<String> value = String::New("value");
+    Local<Object> iter;
+    Local<Function> next_func;
+    Local<Value> func_args[1];
+    Local<Value> empty_args[0];
+
+    obj->Wrap(args.This());
+    args.This()->SetAccessor(String::New("size"), Size);
 
     if(args.Length() > 0) {
-        if (args[0]->IsInt32()) {
-            int buckets = args[0]->Int32Value();
-            obj = new NodeSet(buckets);
-        } else if (args[0]->IsArray()) {
+        std::cout << "constructor has an argument\n";
+        if (!args.This()->Has(add) || !args.This()->Get(add)->IsFunction()) {
+            ThrowException(Exception::TypeError(String::New("Invalid add method")));
+            return scope.Close(args.This());
+        }
+        adder = Local<Function>::Cast(args.This()->Get(add));
+        if (args[0]->IsArray()) {
             arr = Local<Array>::Cast(args[0]);
-            obj = new NodeSet(arr->Length());
-            for (i = 0; i < arr->Length(); i++) {
-                persistent = Persistent<Value>::New(arr->Get(i));
-
-                itr = obj->set.find(persistent);
-                // value doesn't already exists
-                if (itr == obj->set.end()) {
-                    obj->set.insert(persistent);
+            for (i = 0; i < arr->Length(); i += 1) {
+                func_args[0] = arr->Get(i);
+                adder->Call(args.This(), 1, func_args);
+            }
+        } else if (args[0]->IsObject()) {
+            iter = Local<Object>::Cast(args[0]);
+            if (iter->Has(next) && iter->Get(next)->IsFunction() && iter->Has(value) && iter->Has(done)) {
+                next_func = Local<Function>::Cast(iter->Get(next));
+                // a value iterator
+                while(!iter->Get(done)->BooleanValue()) {
+                    func_args[0] = iter->Get(value);
+                    adder->Call(args.This(), 1, func_args);
+                    next_func->Call(iter, 0, empty_args);
                 }
             }
-        } else {
-            obj = new NodeSet();
         }
-    } else {
-        obj = new NodeSet();
     }
-
-
-    args.This()->SetAccessor(String::New("size"), Size);
-    obj->Wrap(args.This());
 
     return scope.Close(args.This());
 }
@@ -88,9 +99,7 @@ Handle<Value> NodeSet::Has(const Arguments& args) {
 
     NodeSet *obj = ObjectWrap::Unwrap<NodeSet>(args.This());
 
-    Persistent<Value> value = Persistent<Value>(args[0]);
-
-    SetType::const_iterator itr = obj->set.find(value);
+    SetType::const_iterator itr = obj->set.find(args[0]);
 
     if(itr == obj->set.end()) {
         return scope.Close(False());
@@ -108,17 +117,16 @@ Handle<Value> NodeSet::Add(const Arguments& args) {
     }
 
     NodeSet *obj = ObjectWrap::Unwrap<NodeSet>(args.This());
+    int i;
+    for (i = 0; i < args.Length(); i += 1) {
+        SetType::const_iterator itr = obj->set.find(args[i]);
 
-    Persistent<Value> persistent = Persistent<Value>::New(args[0]);
-
-    SetType::const_iterator itr = obj->set.find(persistent);
-
-    // value already exists
-    if (itr != obj->set.end()) {
-        return scope.Close(args.This()); // return this
+        // value already exists
+        if (itr == obj->set.end()) {
+            Persistent<Value> persistent = Persistent<Value>::New(args[i]);
+            obj->set.insert(persistent);
+        }
     }
-
-    obj->set.insert(persistent);
 
     //Return this
     return scope.Close(args.This());
@@ -186,7 +194,7 @@ Handle<Value> NodeSet::Clear(const Arguments& args) {
     NodeSet *obj = ObjectWrap::Unwrap<NodeSet>(args.This());
 
     for(SetType::const_iterator itr = obj->set.begin(); itr != obj->set.end(); ) {
-        Persistent<Value> value = *itr;
+        Persistent<Value> value = Persistent<Value>::Persistent(*itr);
         value.Dispose();
         value.Clear();
 
@@ -226,26 +234,6 @@ Handle<Value> NodeSet::Reserve(const Arguments& args) {
     return scope.Close(Undefined());
 }
 
-Handle<Value> NodeSet::MaxLoadFactor(const Arguments& args) {
-    HandleScope scope;
-
-    NodeSet *obj = ObjectWrap::Unwrap<NodeSet>(args.This());
-
-    if(args.Length() > 0) {
-        Number *num = static_cast<Number*>(*args[0]);
-        float factor = (float)num->Value();
-        float old_factor = obj->set.max_load_factor();
-        if(factor > 0)
-            obj->set.max_load_factor(factor);
-
-        return scope.Close(Number::New((double)old_factor));
-    } else {
-        float old_factor = obj->set.max_load_factor();
-
-        return scope.Close(Number::New((double)old_factor));
-    }
-}
-
 Handle<Value> NodeSet::ForEach(const Arguments& args) {
     HandleScope scope;
 
@@ -258,7 +246,7 @@ Handle<Value> NodeSet::ForEach(const Arguments& args) {
 
     Local<Function> cb = Local<Function>::Cast(args[0]);
     const unsigned argc = 2;
-    Persistent<Value> argv[argc];
+    Handle<Value> argv[argc];
 
     SetType::const_iterator itr = obj->set.begin();
 

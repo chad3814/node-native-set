@@ -13,7 +13,7 @@
 #include <node.h>
 #include "v8_value_hasher.h"
 
-typedef unordered_set<v8::Persistent<v8::Value>, v8_value_hash, v8_value_equal_to> SetType;
+typedef unordered_set<v8::Handle<v8::Value>, v8_value_hash, v8_value_equal_to> SetType;
 
 class NodeSet : public node::ObjectWrap {
  public:
@@ -58,9 +58,6 @@ class NodeSet : public node::ObjectWrap {
 
   //set.reserve(size) : undefined
   static v8::Handle<v8::Value> Reserve(const v8::Arguments &args);
-
-  //set.max_load_factor() or set.max_load_factor(factor) : current or old max_load_factor
-  static v8::Handle<v8::Value> MaxLoadFactor(const v8::Arguments &args);
 
   //set.forEach(function (key, value) {...}) : undefined
   static v8::Handle<v8::Value> ForEach(const v8::Arguments &args);
