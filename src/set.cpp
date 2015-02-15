@@ -43,7 +43,6 @@ Handle<Value> NodeSet::Constructor(const Arguments& args) {
     HandleScope scope;
     NodeSet *obj = new NodeSet();
     Local<Array> arr;
-    Persistent<Value> persistent;
     SetType::const_iterator itr;
     Local<Function> adder;
     uint32_t i;
@@ -60,7 +59,6 @@ Handle<Value> NodeSet::Constructor(const Arguments& args) {
     args.This()->SetAccessor(String::New("size"), Size);
 
     if(args.Length() > 0) {
-        std::cout << "constructor has an argument\n";
         if (!args.This()->Has(add) || !args.This()->Get(add)->IsFunction()) {
             ThrowException(Exception::TypeError(String::New("Invalid add method")));
             return scope.Close(args.This());
