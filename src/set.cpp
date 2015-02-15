@@ -34,6 +34,7 @@ NodeSet::~NodeSet() {
     for(SetType::const_iterator itr = this->set.begin(); itr != this->set.end(); ) {
         Persistent<Value> value = Persistent<Value>::Persistent(*itr);
         value.Dispose();
+        value.Clear();
 
         itr = this->set.erase(itr);
     }
