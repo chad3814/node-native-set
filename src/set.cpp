@@ -32,7 +32,7 @@ NodeSet::NodeSet(size_t buckets) : set(buckets) {}
 
 NodeSet::~NodeSet() {
     for(SetType::const_iterator itr = this->set.begin(); itr != this->set.end(); ) {
-        Persistent<Value> value = Persistent<Value>::Persistent(*itr);
+        Persistent<Value> value = Persistent<Value>(*itr);
         value.Dispose();
         value.Clear();
 
@@ -193,7 +193,7 @@ Handle<Value> NodeSet::Clear(const Arguments& args) {
     NodeSet *obj = ObjectWrap::Unwrap<NodeSet>(args.This());
 
     for(SetType::const_iterator itr = obj->set.begin(); itr != obj->set.end(); ) {
-        Persistent<Value> value = Persistent<Value>::Persistent(*itr);
+        Persistent<Value> value = Persistent<Value>(*itr);
         value.Dispose();
         value.Clear();
 
