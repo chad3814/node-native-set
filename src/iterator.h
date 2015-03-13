@@ -4,6 +4,7 @@
 #include <string>
 #include <iostream>
 #include <node.h>
+#include <nan.h>
 #include "set.h"
 
 class SingleNodeIterator : public node::ObjectWrap {
@@ -22,13 +23,13 @@ private:
     SetType::const_iterator end;
 
     // iterator.done : boolean
-    static v8::Handle<v8::Value> GetDone(v8::Local<v8::String> property, const v8::AccessorInfo &info);
+    static NAN_GETTER(GetDone);
 
     // iterator.value : boolean
-    static v8::Handle<v8::Value> GetValue(v8::Local<v8::String> property, const v8::AccessorInfo &info);
+    static NAN_GETTER(GetValue);
 
     // iterator.next() : undefined
-    static v8::Handle<v8::Value> Next(const v8::Arguments &args);
+    static NAN_METHOD(Next);
 };
 
 #endif

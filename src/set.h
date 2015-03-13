@@ -11,9 +11,10 @@
 #define unordered_set std::unordered_set
 #endif
 #include <node.h>
+#include <nan.h>
 #include "v8_value_hasher.h"
 
-typedef unordered_set<v8::Handle<v8::Value>, v8_value_hash, v8_value_equal_to> SetType;
+typedef unordered_set<V8PersistentValueWrapper *, v8_value_hash, v8_value_equal_to> SetType;
 
 class NodeSet : public node::ObjectWrap {
  public:
@@ -27,40 +28,40 @@ class NodeSet : public node::ObjectWrap {
   SetType set;
 
   // new NodeSet() or new NodeSet(buckets)
-  static v8::Handle<v8::Value> Constructor(const v8::Arguments &args);
+  static NAN_METHOD(Constructor);
 
   // set.has(value) : boolean
-  static v8::Handle<v8::Value> Has(const v8::Arguments &args);
+  static NAN_METHOD(Has);
 
   // set.add(key, value) : this
-  static v8::Handle<v8::Value> Add(const v8::Arguments &args);
+  static NAN_METHOD(Add);
 
   // set.entries() : iterator
-  static v8::Handle<v8::Value> Entries(const v8::Arguments &args);
+  static NAN_METHOD(Entries);
 
   // set.keys() : iterator
-  static v8::Handle<v8::Value> Keys(const v8::Arguments &args);
+  static NAN_METHOD(Keys);
 
   // set.values() : iterator
-  static v8::Handle<v8::Value> Values(const v8::Arguments &args);
+  static NAN_METHOD(Values);
 
   // set.delete(value) : boolean
-  static v8::Handle<v8::Value> Delete(const v8::Arguments &args);
+  static NAN_METHOD(Delete);
 
   // set.clear() : undefined
-  static v8::Handle<v8::Value> Clear(const v8::Arguments &args);
+  static NAN_METHOD(Clear);
 
   // set.size() : number of elements
-  static v8::Handle<v8::Value> Size(v8::Local<v8::String> property, const v8::AccessorInfo &info);
+  static NAN_GETTER(Size);
 
   // set.rehash(buckets) : undefined
-  static v8::Handle<v8::Value> Rehash(const v8::Arguments &args);
+  static NAN_METHOD(Rehash);
 
   //set.reserve(size) : undefined
-  static v8::Handle<v8::Value> Reserve(const v8::Arguments &args);
+  static NAN_METHOD(Reserve);
 
   //set.forEach(function (key, value) {...}) : undefined
-  static v8::Handle<v8::Value> ForEach(const v8::Arguments &args);
+  static NAN_METHOD(ForEach);
 };
 
 #endif

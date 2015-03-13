@@ -4,6 +4,7 @@
 #include <string>
 #include <iostream>
 #include <node.h>
+#include <nan.h>
 #ifdef __APPLE__
 #include <tr1/unordered_set>
 #define hash std::tr1::hash
@@ -12,21 +13,98 @@
 #define hash std::hash
 #endif
 
+#if NODE_VERSION_AT_LEAST(0, 11, 15)
+// Node 0.11+ and io.js
+class V8PersistentValueWrapper {
+public:
+    V8PersistentValueWrapper(v8::Isolate *isolate, v8::Local<v8::Value> value) : _isolate(isolate), _value(isolate, value) {}
+
+    ~V8PersistentValueWrapper() {
+        Dispose();
+    }
+
+    V8PersistentValueWrapper(V8PersistentValueWrapper const& other) {
+        _value = other._value;
+        _isolate = other._isolate;
+    }
+
+    V8PersistentValueWrapper& operator=(V8PersistentValueWrapper const& other) {
+        if (this == &other) {
+            return *this;
+        }
+        _value = other._value;
+        _isolate = other._isolate;
+        return *this;
+    }
+
+    v8::Local<v8::Value> Extract() {
+        v8::EscapableHandleScope scope(_isolate);
+        return scope.Escape(v8::Local<v8::Value>::New(_isolate, _value));
+    }
+
+    void Dispose() {
+        _isolate = NULL;
+        _value.Reset();
+    }
+
+private:
+
+    v8::Isolate *_isolate;
+    v8::Persistent<v8::Value, v8::CopyablePersistentTraits<v8::Value> > _value;
+};
+#else
+// Node 0.10-
+class V8PersistentValueWrapper {
+public:
+    V8PersistentValueWrapper(v8::Isolate *isolate, v8::Local<v8::Value> value) : _value(value) {}
+
+    ~V8PersistentValueWrapper() {
+        Dispose();
+    }
+
+    V8PersistentValueWrapper(V8PersistentValueWrapper const& other) {
+        _value = other._value;
+    }
+
+    V8PersistentValueWrapper& operator=(V8PersistentValueWrapper const& other) {
+        if (this == &other) {
+            return *this;
+        }
+        _value = other._value;
+        return *this;
+    }
+
+    v8::Local<v8::Value> Extract() {
+        return v8::Local<v8::Value>::New(_value);
+    }
+
+    void Dispose() {
+        _value.Dispose();
+    }
+
+private:
+    v8::Persistent<v8::Value> _value;
+};
+#endif
 
 struct v8_value_hash
 {
-    size_t operator()(v8::Handle<v8::Value> key) const {
+    size_t operator()(V8PersistentValueWrapper *pkey) const {
+        v8::Local<v8::Value> key = pkey->Extract();
         std::string s;
         if (key->IsString() || key->IsBoolean() || key->IsNumber()) {
-            return hash<std::string>()(*v8::String::AsciiValue(key->ToString()));
+            return hash<std::string>()(*NanUtf8String(key->ToString()));
         }
-        return hash<int>()(v8::Handle<v8::Object>::Cast(key)->GetIdentityHash());
+        return hash<int>()(key.As<v8::Object>()->GetIdentityHash());
     }
 };
 
 struct v8_value_equal_to
 {
-    bool operator()(v8::Handle<v8::Value> a, v8::Handle<v8::Value> b) const {
+    bool operator()(V8PersistentValueWrapper *pa, V8PersistentValueWrapper *pb) const {
+        v8::Local<v8::Value> a = pa->Extract();
+        v8::Local<v8::Value> b = pb->Extract();
+
         if (a->Equals(b)) {          /* same as JS == */
             return true;
         }
@@ -43,7 +121,7 @@ struct v8_value_equal_to
         }
 
         // if the identity hashes are equal, then it's equal
-        return v8::Handle<v8::Object>::Cast(a)->GetIdentityHash() == v8::Handle<v8::Object>::Cast(b)->GetIdentityHash();
+        return a.As<v8::Object>()->GetIdentityHash() == b.As<v8::Object>()->GetIdentityHash();
     }
 };
 
