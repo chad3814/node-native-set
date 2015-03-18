@@ -4,6 +4,8 @@
 Uses native C++ unordered_set container, so the memory is stored
 outside of node and it is a lot faster than native JS implementations.
 
+As of 2.0.0, requires node.js 0.12 or later. If you are running
+node.js 0.10, stick with the 1.x.x.
 
 ### Usage
 

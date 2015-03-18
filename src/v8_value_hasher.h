@@ -13,7 +13,6 @@
 #define hash std::hash
 #endif
 
-#if NODE_VERSION_AT_LEAST(0, 11, 15)
 // Node 0.11+ and io.js
 class V8PersistentValueWrapper {
 public:
@@ -52,40 +51,7 @@ private:
     v8::Isolate *_isolate;
     v8::Persistent<v8::Value, v8::CopyablePersistentTraits<v8::Value> > _value;
 };
-#else
-// Node 0.10-
-class V8PersistentValueWrapper {
-public:
-    V8PersistentValueWrapper(v8::Isolate *isolate, v8::Local<v8::Value> value) : _value(value) {}
 
-    ~V8PersistentValueWrapper() {
-        Dispose();
-    }
-
-    V8PersistentValueWrapper(V8PersistentValueWrapper const& other) {
-        _value = other._value;
-    }
-
-    V8PersistentValueWrapper& operator=(V8PersistentValueWrapper const& other) {
-        if (this == &other) {
-            return *this;
-        }
-        _value = other._value;
-        return *this;
-    }
-
-    v8::Local<v8::Value> Extract() {
-        return v8::Local<v8::Value>::New(_value);
-    }
-
-    void Dispose() {
-        _value.Dispose();
-    }
-
-private:
-    v8::Persistent<v8::Value> _value;
-};
-#endif
 
 struct v8_value_hash
 {
