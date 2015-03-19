@@ -212,7 +212,6 @@ NAN_GETTER(NodeSet::Size) {
     NodeSet *obj = ObjectWrap::Unwrap<NodeSet>(args.This());
     uint32_t size = obj->set.size();
 
-    // NanReturnValue(NanNew<Integer>(obj->set.size()));
     NanReturnValue(NanNew<Integer>(size));
 }
 
