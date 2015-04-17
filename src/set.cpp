@@ -116,7 +116,6 @@ NAN_METHOD(NodeSet::Add) {
     if (args.Length() < 1) {
         NanThrowTypeError("Wrong arguments");
         NanReturnUndefined();
-
     }
 
     NodeSet *obj = ObjectWrap::Unwrap<NodeSet>(args.This());
@@ -124,6 +123,11 @@ NAN_METHOD(NodeSet::Add) {
     V8PersistentValueWrapper *persistent;
 
     for (i = 0; i < args.Length(); i += 1) {
+        if (args[i]->IsUndefined() || args[i]->IsNull()) {
+            NanThrowTypeError("Wrong arguments: can't add undefined or null");
+            NanReturnUndefined();
+        }
+
         persistent = new V8PersistentValueWrapper(Isolate::GetCurrent(), args[i]);
         SetType::const_iterator itr = obj->set.find(persistent);
 
