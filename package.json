@@ -1,6 +1,6 @@
 {
   "name": "es6-native-set",
-  "version": "2.0.3",
+  "version": "2.0.4",
   "description": "Native es6 set for Node",
   "main": "./index.js",
   "keywords": [
