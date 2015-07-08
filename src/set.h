@@ -14,7 +14,7 @@
 #include <nan.h>
 #include "v8_value_hasher.h"
 
-typedef unordered_set<V8PersistentValueWrapper *, v8_value_hash, v8_value_equal_to> SetType;
+typedef unordered_set<v8::UniquePersistent<v8::Value> *, v8_value_hash, v8_value_equal_to> SetType;
 
 class NodeSet : public node::ObjectWrap {
  public:

@@ -91,7 +91,7 @@ NAN_GETTER(SingleNodeIterator::GetValue) {
         NanReturnUndefined();
     }
 
-    NanReturnValue((*(obj->iter))->Extract());
+    NanReturnValue(Local<Value>::New(Isolate::GetCurrent(), *(*obj->iter)));
 }
 
 // iterator.next() : undefined

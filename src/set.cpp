@@ -37,6 +37,7 @@ NodeSet::NodeSet(size_t buckets) : set(buckets) {}
 
 NodeSet::~NodeSet() {
     for(SetType::const_iterator itr = this->set.begin(); itr != this->set.end(); ) {
+        (*itr)->Reset();
         delete *itr;
 
         itr = this->set.erase(itr);
@@ -99,9 +100,12 @@ NAN_METHOD(NodeSet::Has) {
     }
 
     NodeSet *obj = ObjectWrap::Unwrap<NodeSet>(args.This());
-    V8PersistentValueWrapper *persistent = new V8PersistentValueWrapper(Isolate::GetCurrent(), args[0]);
+    Isolate *isolate = Isolate::GetCurrent();
+    UniquePersistent<Value> *persistent = new UniquePersistent<Value>(isolate, args[0]);
 
     SetType::const_iterator itr = obj->set.find(persistent);
+    persistent->Reset();
+    delete persistent;
 
     if(itr == obj->set.end()) {
         NanReturnValue(NanFalse());
@@ -119,8 +123,9 @@ NAN_METHOD(NodeSet::Add) {
     }
 
     NodeSet *obj = ObjectWrap::Unwrap<NodeSet>(args.This());
+    Isolate *isolate = Isolate::GetCurrent();
+    UniquePersistent<Value> *persistent;
     int i;
-    V8PersistentValueWrapper *persistent;
 
     for (i = 0; i < args.Length(); i += 1) {
         if (args[i]->IsUndefined() || args[i]->IsNull()) {
@@ -128,13 +133,14 @@ NAN_METHOD(NodeSet::Add) {
             NanReturnUndefined();
         }
 
-        persistent = new V8PersistentValueWrapper(Isolate::GetCurrent(), args[i]);
+        persistent = new UniquePersistent<Value>(isolate, args[i]);
         SetType::const_iterator itr = obj->set.find(persistent);
 
         // value doesn't already exists
         if (itr == obj->set.end()) {
             obj->set.insert(persistent);
         } else {
+            persistent->Reset();
             delete persistent;
         }
     }
@@ -182,14 +188,18 @@ NAN_METHOD(NodeSet::Delete) {
     }
 
     NodeSet *obj = ObjectWrap::Unwrap<NodeSet>(args.This());
-    V8PersistentValueWrapper *persistent = new V8PersistentValueWrapper(Isolate::GetCurrent(), args[0]);
+    Isolate *isolate = Isolate::GetCurrent();
+    UniquePersistent<Value> *persistent = new UniquePersistent<Value>(isolate, args[0]);
 
     SetType::const_iterator itr = obj->set.find(persistent);
+    persistent->Reset();
+    delete persistent;
 
     if(itr == obj->set.end()) {
         NanReturnValue(NanFalse());
     }
 
+    (*itr)->Reset();
     delete *itr;
     obj->set.erase(itr);
 
@@ -202,6 +212,7 @@ NAN_METHOD(NodeSet::Clear) {
     NodeSet *obj = ObjectWrap::Unwrap<NodeSet>(args.This());
 
     for(SetType::const_iterator itr = obj->set.begin(); itr != obj->set.end(); ) {
+        (*itr)->Reset();
         delete *itr;
 
         itr = obj->set.erase(itr);
@@ -247,25 +258,33 @@ NAN_METHOD(NodeSet::ForEach) {
     NanScope();
 
     NodeSet *obj = ObjectWrap::Unwrap<NodeSet>(args.This());
+    Isolate* isolate = Isolate::GetCurrent();
 
-    if (!args[0]->IsFunction()) {
+    if (args.Length() < 1 || !args[0]->IsFunction()) {
         NanThrowTypeError("Wrong arguments");
         NanReturnUndefined();
     }
+    Local<Function> cb = Local<Function>::Cast(args[0]);
 
-    NanCallback *cb = new NanCallback(args[0].As<Function>());
-    const unsigned argc = 2;
+    Local<Object> ctx;
+    if (args.Length() > 1 && args[1]->IsObject()) {
+        ctx = args[1]->ToObject();
+    } else {
+        ctx = NanGetCurrentContext()->Global();
+    }
+
+    const unsigned argc = 3;
     Local<Value> argv[argc];
+    argv[2] = args.This();
 
     SetType::const_iterator itr = obj->set.begin();
 
     while (itr != obj->set.end()) {
-        argv[0] = (*itr)->Extract();
-        argv[1] = (*itr)->Extract();
-        cb->Call(2, argv);
+        argv[0] = Local<Value>::New(isolate, **itr);
+        argv[1] = argv[0];
+        cb->Call(ctx, argc, argv);
         itr++;
     }
 
-    delete cb;
     NanReturnUndefined();
 }
