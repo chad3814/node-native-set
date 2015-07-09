@@ -30,8 +30,17 @@ struct v8_value_hash
 
 struct v8_value_equal_to
 {
-    bool operator()(v8::UniquePersistent<v8::Value> *a, v8::UniquePersistent<v8::Value> *b) const {
-        return *a == *b;
+    bool operator()(v8::UniquePersistent<v8::Value> *pa, v8::UniquePersistent<v8::Value> *pb) const {
+        NanScope();
+        v8::Isolate *isolate = v8::Isolate::GetCurrent();
+        v8::Local<v8::Value> a = v8::Local<v8::Value>::New(isolate, *pa);
+        v8::Local<v8::Value> b = v8::Local<v8::Value>::New(isolate, *pb);
+
+        if (a->Equals(b)) {          /* same as JS == */
+            return true;
+        }
+
+        return a->ToObject()->GetIdentityHash() == b->ToObject()->GetIdentityHash();
     }
 };
 
