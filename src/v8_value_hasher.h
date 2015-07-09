@@ -11,7 +11,7 @@
 #include <unordered_set>
 #define hash std::hash
 #endif
-
+#include <nan.h>
 
 struct v8_value_hash
 {
