@@ -14,15 +14,14 @@
 #include <nan.h>
 #include "v8_value_hasher.h"
 
-typedef unordered_set<v8::UniquePersistent<v8::Value> *, v8_value_hash, v8_value_equal_to> SetType;
+typedef unordered_set<CopyablePersistent *, v8_value_hash, v8_value_equal_to> SetType;
 
-class NodeSet : public node::ObjectWrap {
- public:
-  static void init(v8::Handle<v8::Object> exports);
+class NodeSet : public Nan::ObjectWrap {
+public:
+    static void init(v8::Local<v8::Object> target);
 
  private:
   NodeSet();
-  NodeSet(size_t buckets);
   ~NodeSet();
 
   SetType set;

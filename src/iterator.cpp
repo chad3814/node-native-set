@@ -3,64 +3,35 @@
 
 using namespace v8;
 
-#define PROTO(proto, js_name, cpp_name)    \
-    (proto)->Set(NanNew<String>(#js_name), \
-                 NanNew<FunctionTemplate>(cpp_name)->GetFunction())
+Nan::Persistent<FunctionTemplate> SingleNodeIterator::constructor;
 
-static Persistent<FunctionTemplate> key_value_tmplt;
-static Persistent<FunctionTemplate> key_tmplt;
-static Persistent<FunctionTemplate> value_tmplt;
-
-void SingleNodeIterator::init() {
-    Local<FunctionTemplate> tmplt = NanNew<FunctionTemplate>();
-    tmplt->SetClassName(NanNew<String>("NodeIterator"));
+void SingleNodeIterator::init(Local<Object> target) {
+    Local<FunctionTemplate> tmplt = Nan::New<FunctionTemplate>();
+    constructor.Reset(tmplt);
+    tmplt->SetClassName(Nan::New("NodeIterator").ToLocalChecked());
     tmplt->InstanceTemplate()->SetInternalFieldCount(1);
-    Local<ObjectTemplate> key_value_prototype = tmplt->PrototypeTemplate();
-    NanAssignPersistent(key_value_tmplt, tmplt);
-
-    tmplt = NanNew<FunctionTemplate>();
-    tmplt->SetClassName(NanNew<String>("NodeIterator"));
-    tmplt->InstanceTemplate()->SetInternalFieldCount(1);
-    Local<ObjectTemplate> key_prototype = tmplt->PrototypeTemplate();
-    NanAssignPersistent(key_tmplt, tmplt);
-
-    tmplt = NanNew<FunctionTemplate>();
-    tmplt->SetClassName(NanNew<String>("NodeIterator"));
-    tmplt->InstanceTemplate()->SetInternalFieldCount(1);
-    Local<ObjectTemplate> value_prototype = tmplt->PrototypeTemplate();
-    NanAssignPersistent(value_tmplt, tmplt);
-
-    PROTO(key_value_prototype, next, Next);
-    PROTO(key_prototype, next, Next);
-    PROTO(value_prototype, next, Next);
+    Nan::SetPrototypeMethod(tmplt, "next", Next);
 }
 
 Local<Object> SingleNodeIterator::New(int type, SetType::const_iterator new_iter, SetType::const_iterator new_end) {
-    Handle<FunctionTemplate> tmplt;
-    if ((SingleNodeIterator::KEY_TYPE & type) && (SingleNodeIterator::VALUE_TYPE & type)) {
-        tmplt = NanNew<FunctionTemplate>(key_value_tmplt);
-    } else if (KEY_TYPE & type) {
-        tmplt = NanNew<FunctionTemplate>(key_tmplt);
-    } else {
-        tmplt = NanNew<FunctionTemplate>(value_tmplt);
-    }
-
-    Local<Object> obj = tmplt->InstanceTemplate()->NewInstance();
+    Local<FunctionTemplate> constr = Nan::New<FunctionTemplate>(constructor);
+    Local<Object> obj = constr->InstanceTemplate()->NewInstance();
     SingleNodeIterator *iter = new SingleNodeIterator(new_iter, new_end);
 
     iter->Wrap(obj);
-    Local<String> key = NanNew<String>("key");
-    Local<String> value = NanNew<String>("value");
-    Local<String> done = NanNew<String>("done");
+
+    Local<String> key = Nan::New("key").ToLocalChecked();
+    Local<String> value = Nan::New("value").ToLocalChecked();
+    Local<String> done = Nan::New("done").ToLocalChecked();
 
     if (SingleNodeIterator::KEY_TYPE & type) {
-        obj->SetAccessor(key, GetValue);
+        Nan::SetAccessor(obj, key, GetValue);
     }
     if (SingleNodeIterator::VALUE_TYPE & type) {
-        obj->SetAccessor(value, GetValue);
+        Nan::SetAccessor(obj, value, GetValue);
     }
 
-    obj->SetAccessor(done, GetDone);
+    Nan::SetAccessor(obj, done, GetDone);
 
     return obj;
 }
@@ -70,41 +41,45 @@ SingleNodeIterator::SingleNodeIterator(SetType::const_iterator new_iter, SetType
 
 // iterator.done : boolean
 NAN_GETTER(SingleNodeIterator::GetDone) {
-    NanScope();
+    Nan::HandleScope scope;
 
-    SingleNodeIterator *obj = ObjectWrap::Unwrap<SingleNodeIterator>(args.This());
+    SingleNodeIterator *obj = ObjectWrap::Unwrap<SingleNodeIterator>(info.This());
 
     if (obj->iter == obj->end) {
-        NanReturnValue(NanTrue());
+        info.GetReturnValue().Set(Nan::True());
+        return;
     }
-    NanReturnValue(NanFalse());
+    info.GetReturnValue().Set(Nan::False());
+    return;
 }
 
 
 // iterator.value : boolean
 NAN_GETTER(SingleNodeIterator::GetValue) {
-    NanScope();
+    Nan::HandleScope scope;
 
-    SingleNodeIterator *obj = ObjectWrap::Unwrap<SingleNodeIterator>(args.This());
+    SingleNodeIterator *obj = ObjectWrap::Unwrap<SingleNodeIterator>(info.This());
 
     if (obj->iter == obj->end) {
-        NanReturnUndefined();
+        info.GetReturnValue().Set(Nan::Undefined());
+        return;
     }
 
-    NanReturnValue(Local<Value>::New(Isolate::GetCurrent(), *(*obj->iter)));
+    info.GetReturnValue().Set(Local<Value>::New(Isolate::GetCurrent(), *(*obj->iter)));
 }
 
 // iterator.next() : undefined
 NAN_METHOD(SingleNodeIterator::Next) {
-    NanScope();
+    Nan::HandleScope scope;
 
-    SingleNodeIterator *obj = ObjectWrap::Unwrap<SingleNodeIterator >(args.This());
+    SingleNodeIterator *obj = ObjectWrap::Unwrap<SingleNodeIterator >(info.This());
 
     if (obj->iter == obj->end) {
-        NanReturnThis();
+        info.GetReturnValue().Set(info.This());
+        return;
     }
 
     obj->iter++;
-
-    NanReturnThis();
+    info.GetReturnValue().Set(info.This());
+    return;
 }
