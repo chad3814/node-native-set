@@ -22,6 +22,7 @@ void NodeSet::init(Local<Object> target) {
     Nan::SetPrototypeMethod(constructor, "forEach", ForEach);
     Nan::SetPrototypeMethod(constructor, "rehash", Rehash);
     Nan::SetPrototypeMethod(constructor, "reserve", Reserve);
+    Nan::SetAccessor(constructor->InstanceTemplate(), Nan::New("size").ToLocalChecked(), Size);
 
     target->Set(Nan::New("NodeSet").ToLocalChecked(), constructor->GetFunction());
 
@@ -44,7 +45,6 @@ NAN_METHOD(NodeSet::Constructor) {
     Nan::HandleScope scope;
     NodeSet *obj = new NodeSet();
 
-    Local<Function> adder;
     Local<Array> arr;
     uint32_t i;
     Local<String> add = Nan::New("add").ToLocalChecked();
@@ -55,31 +55,32 @@ NAN_METHOD(NodeSet::Constructor) {
     Local<Value> func_info[1];
 
     obj->Wrap(info.This());
-    Nan::SetAccessor(info.This(), Nan::New("size").ToLocalChecked(), Size);
     info.GetReturnValue().Set(info.This());
 
-    if(info.Length() > 0) {
-        if (!info.This()->Has(add) || !Nan::Get(info.This(), add).ToLocalChecked()->IsFunction()) {
-            Nan::ThrowTypeError("Invalid add method");
-            return;
+    if(info.Length() == 0) {
+        return;
+    }
+
+    if (!info.This()->Has(add) || !Nan::Get(info.This(), add).ToLocalChecked()->IsFunction()) {
+        Nan::ThrowTypeError("Invalid add method");
+        return;
+    }
+    Nan::Callback adder(Nan::Get(info.This(), add).ToLocalChecked().As<Function>());
+    if (info[0]->IsArray()) {
+        arr = info[0].As<Array>();
+        for (i = 0; i < arr->Length(); i += 1) {
+            func_info[0] = Nan::Get(arr, i).ToLocalChecked();
+            adder.Call(info.This(), 1, func_info);
         }
-        Nan::Callback adder(Nan::Get(info.This(), add).ToLocalChecked().As<Function>());
-        if (info[0]->IsArray()) {
-            arr = info[0].As<Array>();
-            for (i = 0; i < arr->Length(); i += 1) {
-                func_info[0] = Nan::Get(arr, i).ToLocalChecked();
+    } else if (info[0]->IsObject()) {
+        iter = Nan::To<Object>(info[0]).ToLocalChecked();
+        if (iter->Has(next) && iter->Get(next)->IsFunction() && iter->Has(value) && iter->Has(done)) {
+            Nan::Callback next_func(Nan::Get(iter, next).ToLocalChecked().As<Function>());
+            // a value iterator
+            while(!Nan::Get(iter, done).ToLocalChecked()->BooleanValue()) {
+                func_info[0] = Nan::Get(iter, value).ToLocalChecked();
                 adder.Call(info.This(), 1, func_info);
-            }
-        } else if (info[0]->IsObject()) {
-            iter = Nan::To<Object>(info[0]).ToLocalChecked();
-            if (iter->Has(next) && iter->Get(next)->IsFunction() && iter->Has(value) && iter->Has(done)) {
-                Nan::Callback next_func(Nan::Get(iter, next).ToLocalChecked().As<Function>());
-                // a value iterator
-                while(!Nan::Get(iter, done).ToLocalChecked()->BooleanValue()) {
-                    func_info[0] = Nan::Get(iter, value).ToLocalChecked();
-                    adder.Call(info.This(), 1, func_info);
-                    next_func.Call(iter, 0, 0);
-                }
+                next_func.Call(iter, 0, 0);
             }
         }
     }

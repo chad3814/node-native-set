@@ -16,7 +16,9 @@ public:
     const static int VALUE_TYPE = 1 << 1;
 
 private:
-    static Nan::Persistent<v8::FunctionTemplate> constructor;
+    static Nan::Persistent<v8::FunctionTemplate> k_constructor;
+    static Nan::Persistent<v8::FunctionTemplate> v_constructor;
+    static Nan::Persistent<v8::FunctionTemplate> kv_constructor;
 
     SingleNodeIterator(SetType::const_iterator new_iter, SetType::const_iterator new_end);
     //~SingleNodeIterator();
