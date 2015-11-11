@@ -10,7 +10,7 @@
 class SingleNodeIterator : public node::ObjectWrap {
 public:
     static void init(v8::Local<v8::Object> target);
-    static v8::Local<v8::Object> New(int type, SetType::const_iterator new_iter, SetType::const_iterator new_end);
+    static v8::Local<v8::Object> New(int type, NodeSet *obj);
 
     const static int KEY_TYPE = 1;
     const static int VALUE_TYPE = 1 << 1;
@@ -20,11 +20,13 @@ private:
     static Nan::Persistent<v8::FunctionTemplate> v_constructor;
     static Nan::Persistent<v8::FunctionTemplate> kv_constructor;
 
-    SingleNodeIterator(SetType::const_iterator new_iter, SetType::const_iterator new_end);
-    //~SingleNodeIterator();
+    SingleNodeIterator(NodeSet *set_obj);
+    ~SingleNodeIterator();
 
-    SetType::const_iterator iter;
-    SetType::const_iterator end;
+    uint32_t _version;
+    SetType::const_iterator _iter;
+    SetType::const_iterator _end;
+    NodeSet *_set_obj;
 
     // iterator.done : boolean
     static NAN_GETTER(GetDone);
