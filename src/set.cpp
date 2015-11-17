@@ -29,46 +29,17 @@ void NodeSet::init(Local<Object> target) {
     SingleNodeIterator::init(target);
 }
 
-NodeSet::NodeSet() {
-    this->_version = 0;
-    this->_iterator_count = 0;
-}
+NodeSet::NodeSet() {}
 
 NodeSet::~NodeSet() {
-    for(SetType::const_iterator itr = this->_set.begin(); itr != this->_set.end(); ) {
-        itr = this->_set.erase(itr);
+    for(SetType::const_iterator itr = this->set.begin(); itr != this->set.end(); ) {
+        (*itr)->Reset();
+
+        delete *itr;
+
+        itr = this->set.erase(itr);
     }
 }
-
-uint32_t NodeSet::StartIterator() {
-    uint32_t version = this->_version;
-    this->_version++;
-    this->_iterator_count++;
-    return version;
-}
-
-void NodeSet::StopIterator() {
-    this->_iterator_count--;
-    if (this->_iterator_count != 0) {
-        return;
-    }
-    for(SetType::const_iterator itr = this->_set.begin(); itr != this->_set.end(); ) {
-        if (itr->IsDeleted()) {
-            itr = this->_set.erase(itr);
-        } else {
-            itr++;
-        }
-    }
-}
-
-SetType::const_iterator NodeSet::GetBegin() {
-    return this->_set.begin();
-}
-
-SetType::const_iterator NodeSet::GetEnd() {
-    return this->_set.end();
-}
-
 
 NAN_METHOD(NodeSet::Constructor) {
     Nan::HandleScope scope;
@@ -82,8 +53,6 @@ NAN_METHOD(NodeSet::Constructor) {
     Local<String> value = Nan::New("value").ToLocalChecked();
     Local<Object> iter;
     Local<Value> func_info[1];
-    Local<Function> adder;
-    Local<Function> next_func;
 
     obj->Wrap(info.This());
     info.GetReturnValue().Set(info.This());
@@ -96,23 +65,22 @@ NAN_METHOD(NodeSet::Constructor) {
         Nan::ThrowTypeError("Invalid add method");
         return;
     }
-
-    adder = Nan::Get(info.This(), add).ToLocalChecked().As<Function>();
+    Nan::Callback adder(Nan::Get(info.This(), add).ToLocalChecked().As<Function>());
     if (info[0]->IsArray()) {
         arr = info[0].As<Array>();
         for (i = 0; i < arr->Length(); i += 1) {
             func_info[0] = Nan::Get(arr, i).ToLocalChecked();
-            adder->Call(info.This(), 1, func_info);
+            adder.Call(info.This(), 1, func_info);
         }
     } else if (info[0]->IsObject()) {
         iter = Nan::To<Object>(info[0]).ToLocalChecked();
         if (iter->Has(next) && iter->Get(next)->IsFunction() && iter->Has(value) && iter->Has(done)) {
-            next_func = Nan::Get(iter, next).ToLocalChecked().As<Function>();
+            Nan::Callback next_func(Nan::Get(iter, next).ToLocalChecked().As<Function>());
             // a value iterator
             while(!Nan::Get(iter, done).ToLocalChecked()->BooleanValue()) {
                 func_info[0] = Nan::Get(iter, value).ToLocalChecked();
-                adder->Call(info.This(), 1, func_info);
-                next_func->Call(iter, 0, 0);
+                adder.Call(info.This(), 1, func_info);
+                next_func.Call(iter, 0, 0);
             }
         }
     }
@@ -129,19 +97,13 @@ NAN_METHOD(NodeSet::Has) {
     }
 
     NodeSet *obj = Nan::ObjectWrap::Unwrap<NodeSet>(info.This());
-    VersionedPersistent persistent(obj->_version, info[0]);
+    CopyablePersistent *persistent = new Nan::Persistent<Value, Nan::CopyablePersistentTraits<v8::Value> >(info[0]);
 
-    obj->StartIterator();
-    SetType::const_iterator itr = obj->_set.find(persistent);
-    SetType::const_iterator end = obj->_set.end();
+    SetType::const_iterator itr = obj->set.find(persistent);
+    persistent->Reset();
+    delete persistent;
 
-    while(itr != end && itr->IsDeleted()) {
-        itr++;
-    }
-
-    if(itr == end || !info[0]->StrictEquals(itr->GetLocal())) {
-        //do nothing and return false
-        obj->StopIterator();
+    if(itr == obj->set.end()) {
         info.GetReturnValue().Set(Nan::False());
         return;
     }
@@ -159,23 +121,20 @@ NAN_METHOD(NodeSet::Add) {
     }
 
     NodeSet *obj = Nan::ObjectWrap::Unwrap<NodeSet>(info.This());
-    VersionedPersistent *persistent = new VersionedPersistent(obj->_version, info[0]);
+    CopyablePersistent *pvalue = new CopyablePersistent(info[0]);
 
-    obj->StartIterator();
-    SetType::const_iterator itr = obj->_set.find(*persistent);
-    SetType::const_iterator end = obj->_set.end();
-    //delete persistent;
+    SetType::const_iterator itr = obj->set.find(pvalue);
 
-    while(itr != end && itr->IsDeleted()) {
-        itr++;
+    //overwriting an existing value
+    if(itr != obj->set.end()) {
+        (*itr)->Reset();
+
+        delete *itr;
+
+        obj->set.erase(itr);
     }
 
-    if(itr != end && info[0]->StrictEquals(itr->GetLocal())) {
-        itr->Delete();
-    }
-    obj->StopIterator();
-
-    obj->_set.insert(*persistent);
+    obj->set.insert(pvalue);
 
     //Return this
     info.GetReturnValue().Set(info.This());
@@ -187,7 +146,7 @@ NAN_METHOD(NodeSet::Entries) {
 
     NodeSet *obj = ObjectWrap::Unwrap<NodeSet>(info.This());
 
-    Local<Object> iter = SingleNodeIterator::New(SingleNodeIterator::KEY_TYPE | SingleNodeIterator::VALUE_TYPE, obj);
+    Local<Object> iter = SingleNodeIterator::New(SingleNodeIterator::KEY_TYPE | SingleNodeIterator::VALUE_TYPE, obj->set.begin(), obj->set.end());
 
     info.GetReturnValue().Set(iter);
     return;
@@ -198,7 +157,7 @@ NAN_METHOD(NodeSet::Keys) {
 
     NodeSet *obj = ObjectWrap::Unwrap<NodeSet>(info.This());
 
-    Local<Object> iter = SingleNodeIterator::New(SingleNodeIterator::KEY_TYPE, obj);
+    Local<Object> iter = SingleNodeIterator::New(SingleNodeIterator::KEY_TYPE, obj->set.begin(), obj->set.end());
 
     info.GetReturnValue().Set(iter);
     return;
@@ -209,7 +168,7 @@ NAN_METHOD(NodeSet::Values) {
 
     NodeSet *obj = ObjectWrap::Unwrap<NodeSet>(info.This());
 
-    Local<Object> iter = SingleNodeIterator::New(SingleNodeIterator::VALUE_TYPE, obj);
+    Local<Object> iter = SingleNodeIterator::New(SingleNodeIterator::VALUE_TYPE, obj->set.begin(), obj->set.end());
 
     info.GetReturnValue().Set(iter);
     return;
@@ -224,27 +183,23 @@ NAN_METHOD(NodeSet::Delete) {
     }
 
     NodeSet *obj = Nan::ObjectWrap::Unwrap<NodeSet>(info.This());
-    VersionedPersistent persistent(obj->_version, info[0]);
+    CopyablePersistent *persistent = new CopyablePersistent(info[0]);
 
-    obj->StartIterator();
-    SetType::const_iterator itr = obj->_set.find(persistent);
-    SetType::const_iterator end = obj->_set.end();
-    // delete persistent;
+    SetType::const_iterator itr = obj->set.find(persistent);
+    persistent->Reset();
+    delete persistent;
 
-    while(itr != end && itr->IsDeleted()) {
-        std::cout << "incrementing\n";
-        itr++;
-    }
-
-    if(itr == end || !info[0]->StrictEquals(itr->GetLocal())) {
+    if(itr == obj->set.end()) {
         //do nothing and return false
-        obj->StopIterator();
         info.GetReturnValue().Set(Nan::False());
         return;
     }
 
-    itr->Delete();
-    obj->StopIterator();
+    (*itr)->Reset();
+
+    delete *itr;
+
+    obj->set.erase(itr);
 
     info.GetReturnValue().Set(Nan::True());
     return;
@@ -255,11 +210,12 @@ NAN_METHOD(NodeSet::Clear) {
 
     NodeSet *obj = ObjectWrap::Unwrap<NodeSet>(info.This());
 
-    obj->StartIterator();
-    for(SetType::const_iterator itr = obj->_set.begin(); itr != obj->_set.end(); ) {
-        itr->Delete();
+    for(SetType::const_iterator itr = obj->set.begin(); itr != obj->set.end(); ) {
+        (*itr)->Reset();
+        delete *itr;
+
+        itr = obj->set.erase(itr);
     }
-    obj->StopIterator();
 
     info.GetReturnValue().Set(Nan::Undefined());
     return;
@@ -267,20 +223,7 @@ NAN_METHOD(NodeSet::Clear) {
 
 NAN_GETTER(NodeSet::Size) {
     NodeSet *obj = ObjectWrap::Unwrap<NodeSet>(info.This());
-    uint32_t size = 0;
-    if (obj->_iterator_count == 0) {
-        size = obj->_set.size();
-        info.GetReturnValue().Set(Nan::New<Integer>(size));
-        return;
-    }
-
-    SetType::const_iterator itr = obj->_set.begin();
-    SetType::const_iterator end = obj->_set.end();
-    for (; itr != end; itr++) {
-        if (itr->IsValid(obj->_version)) {
-            size += 1;
-        }
-    }
+    uint32_t size = obj->set.size();
 
     info.GetReturnValue().Set(Nan::New<Integer>(size));
     return;
@@ -298,7 +241,7 @@ NAN_METHOD(NodeSet::Rehash) {
 
     size_t buckets = info[0]->Int32Value();
 
-    obj->_set.rehash(buckets);
+    obj->set.rehash(buckets);
 
     info.GetReturnValue().Set(Nan::Undefined());
     return;
@@ -316,7 +259,7 @@ NAN_METHOD(NodeSet::Reserve) {
 
     size_t elements = info[0]->Int32Value();
 
-    obj->_set.rehash(elements);
+    obj->set.rehash(elements);
 
     info.GetReturnValue().Set(Nan::Undefined());
     return;
@@ -344,19 +287,14 @@ NAN_METHOD(NodeSet::ForEach) {
     Local<Value> argv[argc];
     argv[2] = info.This();
 
-    uint32_t version = obj->StartIterator();
-    SetType::const_iterator itr = obj->_set.begin();
-    SetType::const_iterator end = obj->_set.end();
+    SetType::const_iterator itr = obj->set.begin();
 
-    while (itr != end) {
-        if (itr->IsValid(version)) {
-            argv[0] = itr->GetLocal();
-            argv[1] = argv[0];
-            cb->Call(ctx, argc, argv);
-        }
+    while (itr != obj->set.end()) {
+        argv[0] = Local<Value>::New(Isolate::GetCurrent(), *(*itr));
+        argv[1] = argv[0];
+        cb->Call(ctx, argc, argv);
         itr++;
     }
-    obj->StopIterator();
 
     info.GetReturnValue().Set(Nan::Undefined());
     return;

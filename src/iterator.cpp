@@ -38,10 +38,10 @@ void SingleNodeIterator::init(Local<Object> target) {
     Nan::SetPrototypeMethod(kv_tmplt, "next", Next);
 }
 
-Local<Object> SingleNodeIterator::New(int type, NodeSet *set_obj) {
+Local<Object> SingleNodeIterator::New(int type, SetType::const_iterator new_iter, SetType::const_iterator new_end) {
     Local<FunctionTemplate> constructor;
     Local<Object> obj;
-    SingleNodeIterator *iter = new SingleNodeIterator(set_obj);
+    SingleNodeIterator *iter = new SingleNodeIterator(new_iter, new_end);
 
     if (SingleNodeIterator::KEY_TYPE & type) {
         if (SingleNodeIterator::VALUE_TYPE & type) {
@@ -60,16 +60,8 @@ Local<Object> SingleNodeIterator::New(int type, NodeSet *set_obj) {
     return obj;
 }
 
-SingleNodeIterator::SingleNodeIterator(NodeSet *set_obj) {
-    this->_set_obj = set_obj;
-    this->_version = set_obj->StartIterator();
-    this->_iter = set_obj->GetBegin();
-    this->_end = set_obj->GetEnd();
-}
+SingleNodeIterator::SingleNodeIterator(SetType::const_iterator new_iter, SetType::const_iterator new_end) : iter(new_iter), end(new_end) {}
 
-SingleNodeIterator::~SingleNodeIterator() {
-    this->_set_obj->StopIterator();
-}
 
 // iterator.done : boolean
 NAN_GETTER(SingleNodeIterator::GetDone) {
@@ -77,12 +69,7 @@ NAN_GETTER(SingleNodeIterator::GetDone) {
 
     SingleNodeIterator *obj = ObjectWrap::Unwrap<SingleNodeIterator>(info.This());
 
-    while (obj->_iter != obj->_end &&
-           (obj->_iter->IsDeleted() || !obj->_iter->IsValid(obj->_version))) {
-        obj->_iter++;
-    }
-
-    if (obj->_iter == obj->_end) {
+    if (obj->iter == obj->end) {
         info.GetReturnValue().Set(Nan::True());
         return;
     }
@@ -97,18 +84,12 @@ NAN_GETTER(SingleNodeIterator::GetValue) {
 
     SingleNodeIterator *obj = ObjectWrap::Unwrap<SingleNodeIterator>(info.This());
 
-    while (obj->_iter != obj->_end &&
-           (obj->_iter->IsDeleted() || !obj->_iter->IsValid(obj->_version))) {
-        obj->_iter++;
-    }
-
-    if (obj->_iter == obj->_end) {
+    if (obj->iter == obj->end) {
         info.GetReturnValue().Set(Nan::Undefined());
         return;
     }
 
-    info.GetReturnValue().Set(obj->_iter->GetLocal());
-    return;
+    info.GetReturnValue().Set(Local<Value>::New(Isolate::GetCurrent(), *(*obj->iter)));
 }
 
 // iterator.next() : undefined
@@ -117,12 +98,12 @@ NAN_METHOD(SingleNodeIterator::Next) {
 
     SingleNodeIterator *obj = ObjectWrap::Unwrap<SingleNodeIterator >(info.This());
 
-    if (obj->_iter == obj->_end) {
+    if (obj->iter == obj->end) {
         info.GetReturnValue().Set(info.This());
         return;
     }
 
-    obj->_iter++;
+    obj->iter++;
     info.GetReturnValue().Set(info.This());
     return;
 }

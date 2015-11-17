@@ -14,60 +14,53 @@
 #include <nan.h>
 #include "v8_value_hasher.h"
 
-typedef unordered_set<VersionedPersistent, v8_value_hash, v8_value_equal_to> SetType;
+typedef unordered_set<CopyablePersistent *, v8_value_hash, v8_value_equal_to> SetType;
 
 class NodeSet : public Nan::ObjectWrap {
 public:
     static void init(v8::Local<v8::Object> target);
 
-    uint32_t StartIterator();
-    void StopIterator();
-    SetType::const_iterator GetBegin();
-    SetType::const_iterator GetEnd();
+ private:
+  NodeSet();
+  ~NodeSet();
 
-private:
-    NodeSet();
-    ~NodeSet();
+  SetType set;
 
-    SetType _set;
-    uint32_t _version;
-    uint32_t _iterator_count;
+  // new NodeSet() or new NodeSet(buckets)
+  static NAN_METHOD(Constructor);
 
-    // new NodeSet() or new NodeSet(buckets)
-    static NAN_METHOD(Constructor);
+  // set.has(value) : boolean
+  static NAN_METHOD(Has);
 
-    // set.has(value) : boolean
-    static NAN_METHOD(Has);
+  // set.add(key, value) : this
+  static NAN_METHOD(Add);
 
-    // set.add(key, value) : this
-    static NAN_METHOD(Add);
+  // set.entries() : iterator
+  static NAN_METHOD(Entries);
 
-    // set.entries() : iterator
-    static NAN_METHOD(Entries);
+  // set.keys() : iterator
+  static NAN_METHOD(Keys);
 
-    // set.keys() : iterator
-    static NAN_METHOD(Keys);
+  // set.values() : iterator
+  static NAN_METHOD(Values);
 
-    // set.values() : iterator
-    static NAN_METHOD(Values);
+  // set.delete(value) : boolean
+  static NAN_METHOD(Delete);
 
-    // set.delete(value) : boolean
-    static NAN_METHOD(Delete);
+  // set.clear() : undefined
+  static NAN_METHOD(Clear);
 
-    // set.clear() : undefined
-    static NAN_METHOD(Clear);
+  // set.size() : number of elements
+  static NAN_GETTER(Size);
 
-    // set.size() : number of elements
-    static NAN_GETTER(Size);
+  // set.rehash(buckets) : undefined
+  static NAN_METHOD(Rehash);
 
-    // set.rehash(buckets) : undefined
-    static NAN_METHOD(Rehash);
+  //set.reserve(size) : undefined
+  static NAN_METHOD(Reserve);
 
-    //set.reserve(size) : undefined
-    static NAN_METHOD(Reserve);
-
-    //set.forEach(function (key, value) {...}) : undefined
-    static NAN_METHOD(ForEach);
+  //set.forEach(function (key, value) {...}) : undefined
+  static NAN_METHOD(ForEach);
 };
 
 #endif

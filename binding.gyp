@@ -7,7 +7,7 @@
             ['OS=="linux"', {
                 "cflags": [ "-std=c++11", "-Wall" ]
             }, {
-                "cflags": [ "-std=c++11", "-stdlib=libc++", "-Wall", "-g" ]
+                "cflags": [ "-std=c++11", "-stdlib=libc++", "-Wall" ]
             }]
         ]
     }]
