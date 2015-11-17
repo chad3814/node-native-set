@@ -178,7 +178,6 @@ NAN_METHOD(NodeSet::Add) {
     obj->StartIterator();
     SetType::const_iterator itr = obj->_set.find(*persistent);
     SetType::const_iterator end = obj->_set.end();
-    //delete persistent;
 
     while(itr != end && itr->IsDeleted()) {
         itr++;
@@ -243,14 +242,12 @@ NAN_METHOD(NodeSet::Delete) {
     obj->StartIterator();
     SetType::const_iterator itr = obj->_set.find(persistent);
     SetType::const_iterator end = obj->_set.end();
-    // delete persistent;
 
     while(itr != end && itr->IsDeleted()) {
-        std::cout << "incrementing\n";
         itr++;
     }
 
-    if(itr == end || !info[0]->StrictEquals(itr->GetLocal())) {
+    if (itr == end || !info[0]->StrictEquals(itr->GetLocal())) {
         //do nothing and return false
         obj->StopIterator();
         info.GetReturnValue().Set(Nan::False());
