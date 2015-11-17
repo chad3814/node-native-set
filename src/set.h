@@ -14,53 +14,71 @@
 #include <nan.h>
 #include "v8_value_hasher.h"
 
-typedef unordered_set<CopyablePersistent *, v8_value_hash, v8_value_equal_to> SetType;
+typedef unordered_set<VersionedPersistent, v8_value_hash, v8_value_equal_to> SetType;
 
 class NodeSet : public Nan::ObjectWrap {
 public:
     static void init(v8::Local<v8::Object> target);
 
- private:
-  NodeSet();
-  ~NodeSet();
+    uint32_t StartIterator();
+    void StopIterator();
+    SetType::const_iterator GetBegin();
+    SetType::const_iterator GetEnd();
 
-  SetType set;
+private:
+    NodeSet();
+    ~NodeSet();
 
-  // new NodeSet() or new NodeSet(buckets)
-  static NAN_METHOD(Constructor);
+    SetType _set;
+    // each time an iterator starts, the _version gets incremented
+    // it is used so that items added after an iterator starts are
+    // not visited in the iterator
+    uint32_t _version;
+    // we keep track of how many running iterators there are so that
+    // we can clean up when the last iterator is done
+    uint32_t _iterator_count;
+    // we store the load factor here before the first iterator starts
+    // and then set the load factor to infinity so that rehashes of
+    // the set don't happen (from inserts that happen inside an iterator)
+    // once the last iterator finishes, the load factor is reset, and
+    // a rehash might happen
+    float _old_load_factor;
 
-  // set.has(value) : boolean
-  static NAN_METHOD(Has);
+    // new NodeSet() or new NodeSet(buckets)
+    static NAN_METHOD(Constructor);
 
-  // set.add(key, value) : this
-  static NAN_METHOD(Add);
+    // set.has(value) : boolean
+    static NAN_METHOD(Has);
 
-  // set.entries() : iterator
-  static NAN_METHOD(Entries);
+    // set.add(key, value) : this
+    static NAN_METHOD(Add);
 
-  // set.keys() : iterator
-  static NAN_METHOD(Keys);
+    // set.entries() : iterator
+    static NAN_METHOD(Entries);
 
-  // set.values() : iterator
-  static NAN_METHOD(Values);
+    // set.keys() : iterator
+    static NAN_METHOD(Keys);
 
-  // set.delete(value) : boolean
-  static NAN_METHOD(Delete);
+    // set.values() : iterator
+    static NAN_METHOD(Values);
 
-  // set.clear() : undefined
-  static NAN_METHOD(Clear);
+    // set.delete(value) : boolean
+    static NAN_METHOD(Delete);
 
-  // set.size() : number of elements
-  static NAN_GETTER(Size);
+    // set.clear() : undefined
+    static NAN_METHOD(Clear);
 
-  // set.rehash(buckets) : undefined
-  static NAN_METHOD(Rehash);
+    // set.size() : number of elements
+    static NAN_GETTER(Size);
 
-  //set.reserve(size) : undefined
-  static NAN_METHOD(Reserve);
+    // set.rehash(buckets) : undefined
+    static NAN_METHOD(Rehash);
 
-  //set.forEach(function (key, value) {...}) : undefined
-  static NAN_METHOD(ForEach);
+    //set.reserve(size) : undefined
+    static NAN_METHOD(Reserve);
+
+    //set.forEach(function (key, value) {...}) : undefined
+    static NAN_METHOD(ForEach);
 };
 
 #endif
