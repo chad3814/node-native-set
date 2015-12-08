@@ -173,7 +173,6 @@ NAN_METHOD(NodeSet::Add) {
     NodeSet *obj = Nan::ObjectWrap::Unwrap<NodeSet>(info.This());
     VersionedPersistent *persistent = new VersionedPersistent(obj->_version, info[0]);
 
-    obj->StartIterator();
     SetType::const_iterator itr = obj->_set.find(*persistent);
     SetType::const_iterator end = obj->_set.end();
 
@@ -182,11 +181,11 @@ NAN_METHOD(NodeSet::Add) {
     }
 
     if(itr != end && info[0]->StrictEquals(itr->GetLocal())) {
-        itr->Delete();
+        // it's already there
+        delete persistent;
+    } else {
+        obj->_set.insert(*persistent);
     }
-    obj->StopIterator();
-
-    obj->_set.insert(*persistent);
 
     //Return this
     info.GetReturnValue().Set(info.This());
@@ -236,8 +235,13 @@ NAN_METHOD(NodeSet::Delete) {
 
     NodeSet *obj = Nan::ObjectWrap::Unwrap<NodeSet>(info.This());
     VersionedPersistent persistent(obj->_version, info[0]);
+    bool using_iterator = (obj->_iterator_count != 0);
+    bool ret;
 
-    obj->StartIterator();
+    if (using_iterator) {
+        obj->StartIterator();
+    }
+
     SetType::const_iterator itr = obj->_set.find(persistent);
     SetType::const_iterator end = obj->_set.end();
 
@@ -245,17 +249,24 @@ NAN_METHOD(NodeSet::Delete) {
         itr++;
     }
 
-    if (itr == end || !info[0]->StrictEquals(itr->GetLocal())) {
-        //do nothing and return false
+    ret = (itr != end && info[0]->StrictEquals(itr->GetLocal()));
+
+    if (using_iterator) {
+        if (ret) {
+            itr->Delete();
+        }
         obj->StopIterator();
-        info.GetReturnValue().Set(Nan::False());
-        return;
+    } else {
+        if (ret) {
+            obj->_set.erase(itr);
+        }
     }
 
-    itr->Delete();
-    obj->StopIterator();
-
-    info.GetReturnValue().Set(Nan::True());
+    if (ret) {
+        info.GetReturnValue().Set(Nan::True());
+    } else {
+        info.GetReturnValue().Set(Nan::False());
+    }
     return;
 }
 
@@ -263,12 +274,24 @@ NAN_METHOD(NodeSet::Clear) {
     Nan::HandleScope scope;
 
     NodeSet *obj = ObjectWrap::Unwrap<NodeSet>(info.This());
+    bool using_iterator = (obj->_iterator_count != 0);
 
-    obj->StartIterator();
-    for(SetType::const_iterator itr = obj->_set.begin(); itr != obj->_set.end(); ) {
-        itr->Delete();
+    if (using_iterator) {
+        obj->StartIterator();
     }
-    obj->StopIterator();
+
+    for(SetType::const_iterator itr = obj->_set.begin(); itr != obj->_set.end(); ) {
+        if (using_iterator) {
+            itr->Delete();
+            itr++;
+        } else {
+            itr = obj->_set.erase(itr);
+        }
+    }
+
+    if (using_iterator) {
+        obj->StopIterator();
+    }
 
     info.GetReturnValue().Set(Nan::Undefined());
     return;
