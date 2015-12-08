@@ -145,7 +145,6 @@ NAN_METHOD(NodeSet::Has) {
     NodeSet *obj = Nan::ObjectWrap::Unwrap<NodeSet>(info.This());
     VersionedPersistent persistent(obj->_version, info[0]);
 
-    obj->StartIterator();
     SetType::const_iterator itr = obj->_set.find(persistent);
     SetType::const_iterator end = obj->_set.end();
 
@@ -155,7 +154,6 @@ NAN_METHOD(NodeSet::Has) {
 
     if(itr == end || !info[0]->StrictEquals(itr->GetLocal())) {
         //do nothing and return false
-        obj->StopIterator();
         info.GetReturnValue().Set(Nan::False());
         return;
     }
