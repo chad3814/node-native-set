@@ -171,20 +171,17 @@ NAN_METHOD(NodeSet::Add) {
     }
 
     NodeSet *obj = Nan::ObjectWrap::Unwrap<NodeSet>(info.This());
-    VersionedPersistent *persistent = new VersionedPersistent(obj->_version, info[0]);
+    VersionedPersistent persistent(obj->_version, info[0]);
 
-    SetType::const_iterator itr = obj->_set.find(*persistent);
+    SetType::const_iterator itr = obj->_set.find(persistent);
     SetType::const_iterator end = obj->_set.end();
 
     while(itr != end && itr->IsDeleted()) {
         itr++;
     }
 
-    if(itr != end && info[0]->StrictEquals(itr->GetLocal())) {
-        // it's already there
-        delete persistent;
-    } else {
-        obj->_set.insert(*persistent);
+    if(itr == end || !info[0]->StrictEquals(itr->GetLocal())) {
+        obj->_set.insert(persistent);
     }
 
     //Return this
