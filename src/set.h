@@ -3,13 +3,8 @@
 
 #include <string>
 #include <iostream>
-#ifdef __APPLE__
-#include <tr1/unordered_set>
-#define unordered_set std::tr1::unordered_set
-#else
 #include <unordered_set>
 #define unordered_set std::unordered_set
-#endif
 #include <node.h>
 #include <nan.h>
 #include "v8_value_hasher.h"
