@@ -24,5 +24,10 @@
   },
   "dependencies": {
     "nan": "^2.1.0"
+  },
+  "devDependencies": {
+    "collections": "^1.2.4",
+    "tape": "4.2.2",
+    "minimist": "1.2.0"
   }
 }
