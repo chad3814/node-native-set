@@ -27,7 +27,8 @@
   },
   "devDependencies": {
     "collections": "^1.2.4",
-    "tape": "4.2.2",
-    "minimist": "1.2.0"
+    "eslint": "^4.13.1",
+    "minimist": "1.2.0",
+    "tape": "4.2.2"
   }
 }
