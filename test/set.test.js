@@ -7,16 +7,18 @@ var test = require('tape');
     t.doesNotThrow(() => {new Set([1,2,3]), 'can construct an iterable array of integers'});
     t.throws(() => {new Set(1,2,3)}, TypeError,'throws error if not an array'); // note to throw type error
     t.throws(() => {new Set({1:2, 3:4})}, 'throws error on object constructor'); //
-    // let stringy;
-    // t.doesNotThrow(() => {
-    //   stringy = new Set('stringy');
-    // }, 'can construct set with string');
-    // t.equal(stringy.size, 7, 'string set size is as expected'); // note to self about possibly adding logging fxn
-    // let arrayOfArrays;
-    // t.doesNotThrow(() => {
-    //   arrayOfArrays = new Set([[1,2], [3,4]]);
-    // }, 'can construct an array of arrays');
-    // t.equal(arrayOfArrays.size, 2, 'arrayOfArrays size is as expected');
+
+    let stringy;
+    t.doesNotThrow(() => {
+      stringy = new Set('stringy');
+    }, 'can construct set with string');
+    t.equal(stringy.size, 7, 'string set size is as expected'); // note to self about possibly adding logging fxn
+
+    let arrayOfArrays;
+    t.doesNotThrow(() => {
+      arrayOfArrays = new Set([[1,2], [3,4]]);
+    }, 'can construct an array of arrays');
+    t.equal(arrayOfArrays.size, 2, 'arrayOfArrays size is as expected');
     t.end();
   })
 
