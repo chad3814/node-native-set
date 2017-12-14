@@ -8,7 +8,15 @@ void NodeSet::init(Local<Object> target) {
     Nan::HandleScope scope;
 
     Local<FunctionTemplate> constructor = Nan::New<FunctionTemplate>(Constructor);
+    
+    // got to do the Symbol.iterator function by hand, no Nan support
     Local<Symbol> symbol_iterator = Symbol::GetIterator(Isolate::GetCurrent());
+    Local<FunctionTemplate> entries_templt = Nan::New<FunctionTemplate>(
+        Entries
+        , Local<Value>()
+        , Nan::New<Signature>(constructor));
+    constructor->PrototypeTemplate()->Set(symbol_iterator, entries_templt);
+    entries_templt->SetClassName(Nan::New("Symbol(Symbol.iterator)").ToLocalChecked());
 
     constructor->SetClassName(Nan::New("NodeSet").ToLocalChecked());
     constructor->InstanceTemplate()->SetInternalFieldCount(1);
