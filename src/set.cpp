@@ -108,7 +108,7 @@ NAN_METHOD(NodeSet::Constructor) {
     obj->Wrap(info.This());
     info.GetReturnValue().Set(info.This());
 
-    if(info.Length() == 0 || info[0] == Nan::Null()) {
+    if(info.Length() == 0 || info[0]->IsNull()) {
         return;
     }
 
@@ -140,10 +140,11 @@ NAN_METHOD(NodeSet::Constructor) {
     //   Nan::ThrowTypeError("Invalid argument type");
     // }
 
-    if (!info[0]->IsObject()) {
-        Nan::ThrowTypeError("Invalid argument");
-        return;
-    }
+    // if (!info[0]->IsObject()) {
+    //     Nan::ThrowTypeError("Invalid argument");
+    //     return;
+    // }
+
     info0 = Nan::To<Object>(info[0]).ToLocalChecked();
     if (!info0->Has(symbol_iterator)) {
         Nan::ThrowTypeError("Argument not iterable");
