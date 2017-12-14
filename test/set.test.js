@@ -2,7 +2,7 @@ var test = require('tape');
 
 [['builtIn-javascript', Set], ['node-native-set', require('../index.js')]].forEach(([setType, Set]) => {
   test(`test ${setType} constructor`, (t) => {
-    t.doesNotThrow(() => {new Set()}, 'can consturct an empty new Set()');
+    t.doesNotThrow(() => {new Set()}, 'can construct an empty new Set()');
     t.doesNotThrow(() => {new Set(null)}, 'can construct with null'); //
     t.doesNotThrow(() => {new Set([1,2,3]), 'can construct an iterable array of integers'});
 
@@ -41,6 +41,20 @@ var test = require('tape');
 
     t.end();
    });
+   test(`test ${setType} delete method`, (t) => {
+     let mySet = new Set();
+     mySet.add(0);
+     mySet.add(1);
+     const startSize = mySet.size;
+
+     t.ok(mySet.delete(1), 'deleting element in set returns true');
+     t.notOk(mySet.has(1), 'deleted value no longer in set');
+     t.equal(mySet.size, startSize-1, 'deletion reduces size by 1');
+     t.notOk(mySet.delete(5), 'deleting a nonexistent value returns false');
+     t.equal(mySet.size, startSize-1, 'deletion of a nonexistent value does not change size');
+
+     t.end();
+    });
 
    test(`test ${setType} iteration with for..of`, (t) => {
      let mySet = new Set();
