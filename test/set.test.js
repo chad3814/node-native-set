@@ -5,8 +5,6 @@ var test = require('tape');
     t.doesNotThrow(() => {new Set()}, 'can consturct an empty new Set()');
     t.doesNotThrow(() => {new Set(null)}, 'can construct with null'); //
     t.doesNotThrow(() => {new Set([1,2,3]), 'can construct an iterable array of integers'});
-    t.throws(() => {new Set(1,2,3)}, TypeError,'throws error if not an array'); // note to throw type error
-    t.throws(() => {new Set({1:2, 3:4})}, 'throws error on object constructor'); //
 
     let stringy;
     t.doesNotThrow(() => {
@@ -19,24 +17,46 @@ var test = require('tape');
       arrayOfArrays = new Set([[1,2], [3,4]]);
     }, 'can construct an array of arrays');
     t.equal(arrayOfArrays.size, 2, 'arrayOfArrays size is as expected');
+
+    t.throws(() => {new Set(1,2,3)}, TypeError,'throws error if not an array'); // note to throw type error
+    t.throws(() => {new Set(9)}, TypeError, 'throws error with non-iterable obj')
+    t.throws(() => {new Set({1:2, 3:4})}, 'throws error on object constructor'); //
+
     t.end();
   })
 
-  // test(`test ${setType} add method`, (assert) => {
-  //   let mySet = new Set();
-  //   const startSize = mySet.size;
-  //
-  //   assert.doesNotThrow(() => {mySet.add('a string')}, 'can add string to the set');
-  //   assert.equal(mySet.size, startSize+1, 'adding value increases size by 1');
-  //   assert.doesNotThrow(() => {mySet.add({}, 'value')}, 'can add object to a set');
-  //   assert.doesNotThrow(() => {mySet.add(()=>{}, 'value')}, 'can add function to a set');
-  //   assert.doesNotThrow(() => {mySet.add(null, 'value')}, 'can add null to a set'); //
-  //   assert.doesNotThrow(() => {mySet.add(1)}, 'can call add with only 1 argument');
-  //   assert.doesNotThrow(() => {mySet.add(2,3,4)}, 'can call add with more than 1 argument');
-  //   assert.ok(mySet.has(2) && !(mySet.has(3)), 'add ignores arguments after 1st arg');
-  //
-  //   assert.end();
-  //  });
+  test(`test ${setType} add method`, (t) => {
+    let mySet = new Set();
+    const startSize = mySet.size;
+
+    t.doesNotThrow(() => {mySet.add('a string')}, 'can add string to the set');
+    t.equal(mySet.size, startSize+1, 'adding value increases size by 1');
+    t.doesNotThrow(() => {mySet.add({})}, 'can add object to a set');
+    t.doesNotThrow(() => {mySet.add(()=>{})}, 'can add function to a set');
+    t.skip('diverging from builtin; cannot add null to a set');
+    t.equal(mySet.add(1), mySet, "add returns the set");
+    t.doesNotThrow(() => {mySet.add(1)}, 'can call add with only 1 argument');
+    t.doesNotThrow(() => {mySet.add(2,3,4)}, 'can call add with more than 1 argument');
+    t.ok(mySet.has(2) && !(mySet.has(3)), 'add ignores arguments after 1st arg');
+
+    t.end();
+   });
+
+   test(`test ${setType} iteration with for..of`, (t) => {
+     let mySet = new Set();
+     mySet.add(0, 'zero');
+     mySet.add(1, 'one');
+
+     let values = [];
+
+     t.doesNotThrow(() => {
+       for (var element of mySet) {
+         values.push(element);
+       }
+     }, 'can iterate over set with for...of');
+
+     t.end();
+   })
 
 })
 // ```
