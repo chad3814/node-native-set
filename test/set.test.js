@@ -44,19 +44,64 @@ var test = require('tape');
 
    test(`test ${setType} iteration with for..of`, (t) => {
      let mySet = new Set();
-     mySet.add(0, 'zero');
-     mySet.add(1, 'one');
+     mySet.add(0);
+     mySet.add(1);
 
-     let values = [];
+     let elements = [];
 
      t.doesNotThrow(() => {
        for (var element of mySet) {
-         values.push(element);
+         elements.push(element);
        }
      }, 'can iterate over set with for...of');
+     t.deepEquals(elements.sort(), [0,1].sort(), 'iteration with for..of includes all values (not preserving insertion order)');
+
+     let keys = [];
+     t.doesNotThrow(() => {
+       for (var key of mySet.keys()) {
+         keys.push(key);
+       }
+     }, 'can iterate over set.keys() with for..of');
+     t.deepEquals(keys.sort(), [0,1].sort(), 'key iterator includes all keys (identical to values) (not preserving insertion order)');
+
+     let values = [];
+     t.doesNotThrow(() => {
+       for (var value of mySet.values()) {
+         values.push(value);
+       }
+     }, 'can iterate over set.values() with for..of');
+     t.deepEquals(values.sort(), [0,1].sort(), 'value iterator includes all values (not preserving insertion order)');
+
+     let entryKeys = [];
+     let entryValues = [];
+     t.doesNotThrow(() => {
+       for (var [key, value] of mySet.entries()) {
+         entryKeys.push(key);
+         entryValues.push(value);
+       }
+     }, 'can iterate over set.entries() with for..of');
+     t.deepEquals(entryKeys.sort(), [0,1].sort(), 'entries iterator includes all keys (not preserving insertion order)');
+     t.deepEquals(entryValues.sort(), [0,1].sort(), 'entries iterator includes all values (not preserving insertion order)');
+     t.deepEquals(entryKeys, entryValues, 'entry keys/values are identical');
 
      t.end();
-   })
+   });
+
+   test(`test ${setType} iteration with .forEach()`, (assert) => {
+     var mySet = new Set();
+     mySet.add(0);
+     mySet.add(1);  
+
+     let values = [];
+     assert.doesNotThrow(() => {
+       mySet.forEach(function(value) {
+         values.push(value);
+       });
+     }, 'can iterate over set object with .forEach()');
+     assert.deepEquals(values.sort(), [0,1].sort(), 'object iterator includes all values (not preserving insertion order)');
+
+     assert.end();
+   });
 
 })
 // ```
