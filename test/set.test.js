@@ -3,14 +3,14 @@ var test = require('tape');
 [['builtIn-js', Set], ['node-native-set', require('../index.js')]].forEach(([setType, Set]) => {
   test(`test ${setType} constructor`, (t) => {
     t.doesNotThrow(() => {new Set()}, 'can construct an empty new Set()');
-    t.doesNotThrow(() => {new Set(null)}, 'can construct with null'); //
+    t.doesNotThrow(() => {new Set(null)}, 'can construct with null');
     t.doesNotThrow(() => {new Set([1,2,3]), 'can construct an iterable array of integers'});
 
     let stringy;
     t.doesNotThrow(() => {
       stringy = new Set('stringy');
     }, 'can construct set with string');
-    t.equal(stringy.size, 7, 'string set size is as expected'); // note to self about possibly adding logging fxn
+    t.equal(stringy.size, 7, 'string set size is as expected');
 
     let arrayOfArrays;
     t.doesNotThrow(() => {
@@ -18,9 +18,9 @@ var test = require('tape');
     }, 'can construct an array of arrays');
     t.equal(arrayOfArrays.size, 2, 'arrayOfArrays size is as expected');
 
-    t.throws(() => {new Set(1,2,3)}, TypeError,'throws error if not an array'); // note to throw type error
+    t.throws(() => {new Set(1,2,3)}, TypeError,'throws error if not an array');
     t.throws(() => {new Set(9)}, TypeError, 'throws error with non-iterable obj')
-    t.throws(() => {new Set({1:2, 3:4})}, 'throws error on object constructor'); //
+    t.throws(() => {new Set({1:2, 3:4})}, 'throws error on object constructor');
 
     t.end();
   })
