@@ -16,25 +16,21 @@ public:
     const static int VALUE_TYPE = 1 << 1;
 
 private:
-    static Nan::Persistent<v8::FunctionTemplate> k_constructor;
-    static Nan::Persistent<v8::FunctionTemplate> v_constructor;
-    static Nan::Persistent<v8::FunctionTemplate> kv_constructor;
+    static Nan::Persistent<v8::FunctionTemplate> _constructor;
 
-    SingleNodeIterator(NodeSet *set_obj);
+    SingleNodeIterator(int type, NodeSet *set_obj);
     ~SingleNodeIterator();
 
     uint32_t _version;
     SetType::const_iterator _iter;
     SetType::const_iterator _end;
     NodeSet *_set_obj;
+    int _type = KEY_TYPE & VALUE_TYPE;
 
-    // iterator.done : boolean
-    static NAN_GETTER(GetDone);
+    // iterator[Symbol.iterator]() : this
+    static NAN_METHOD(GetThis);
 
-    // iterator.value : boolean
-    static NAN_GETTER(GetValue);
-
-    // iterator.next() : undefined
+    // iterator.next() : {value:, done:}
     static NAN_METHOD(Next);
 };
 
