@@ -40,108 +40,120 @@ var test = require('tape');
     t.ok(mySet.has(2) && !(mySet.has(3)), 'add ignores arguments after 1st arg');
 
     t.end();
-   });
-   test(`test ${setType} delete method`, (t) => {
-     let mySet = new Set();
-     mySet.add(0);
-     mySet.add(1);
-     const startSize = mySet.size;
+  });
 
-     t.ok(mySet.delete(1), 'deleting element in set returns true');
-     t.notOk(mySet.has(1), 'deleted value no longer in set');
-     t.equal(mySet.size, startSize-1, 'deletion reduces size by 1');
-     t.notOk(mySet.delete(5), 'deleting a nonexistent value returns false');
-     t.equal(mySet.size, startSize-1, 'deletion of a nonexistent value does not change size');
+  test(`test ${setType} delete method`, (t) => {
+    let mySet = new Set();
+    mySet.add(0);
+    mySet.add(1);
+    const startSize = mySet.size;
 
-     t.end();
+    t.ok(mySet.delete(1), 'deleting element in set returns true');
+    t.notOk(mySet.has(1), 'deleted value no longer in set');
+    t.equal(mySet.size, startSize-1, 'deletion reduces size by 1');
+    t.notOk(mySet.delete(5), 'deleting a nonexistent value returns false');
+    t.equal(mySet.size, startSize-1, 'deletion of a nonexistent value does not change size');
+
+    t.end();
+  });
+
+    test(`test ${mapType} clear method`, (assert) => {
+      let m = new Map([[1,2],[3,4]]);
+      assert.equal(m.size, 2, 'before clearing map has size > 0');
+      assert.doesNotThrow(() => {m.clear()}, 'nonempty map can be cleared');
+      assert.equal(m.size, 0, 'after clearing map has size == 0');
+      let empty = new Map();
+      assert.doesNotThrow(() => {empty.clear()}, 'empty map can be cleared');
+      assert.equal(empty.size, 0, 'after clearing map has size == 0');
+      assert.end();
     });
 
-   test(`test ${setType} iteration with for..of`, (t) => {
-     let mySet = new Set();
-     mySet.add(0);
-     mySet.add(1);
+  test(`test ${setType} iteration with for..of`, (t) => {
+    let mySet = new Set();
+    mySet.add(0);
+    mySet.add(1);
 
-     let elements = [];
+    let elements = [];
 
-     t.doesNotThrow(() => {
-       for (var element of mySet) {
-         elements.push(element);
-       }
-     }, 'can iterate over set with for...of');
-     t.deepEquals(elements.sort(), [0,1].sort(), 'iteration with for..of includes all values (not preserving insertion order)');
+    t.doesNotThrow(() => {
+      for (var element of mySet) {
+        elements.push(element);
+      }
+    }, 'can iterate over set with for...of');
+    t.deepEquals(elements.sort(), [0,1].sort(), 'iteration with for..of includes all values (not preserving insertion order)');
 
-     let keys = [];
-     t.doesNotThrow(() => {
-       for (var key of mySet.keys()) {
-         keys.push(key);
-       }
-     }, 'can iterate over set.keys() with for..of');
-     t.deepEquals(keys.sort(), [0,1].sort(), 'key iterator includes all keys (identical to values) (not preserving insertion order)');
+    let keys = [];
+    t.doesNotThrow(() => {
+      for (var key of mySet.keys()) {
+        keys.push(key);
+      }
+    }, 'can iterate over set.keys() with for..of');
+    t.deepEquals(keys.sort(), [0,1].sort(), 'key iterator includes all keys (identical to values) (not preserving insertion order)');
 
-     let values = [];
-     t.doesNotThrow(() => {
-       for (var value of mySet.values()) {
-         values.push(value);
-       }
-     }, 'can iterate over set.values() with for..of');
-     t.deepEquals(values.sort(), [0,1].sort(), 'value iterator includes all values (not preserving insertion order)');
+    let values = [];
+    t.doesNotThrow(() => {
+      for (var value of mySet.values()) {
+        values.push(value);
+      }
+    }, 'can iterate over set.values() with for..of');
+    t.deepEquals(values.sort(), [0,1].sort(), 'value iterator includes all values (not preserving insertion order)');
 
-     let entryKeys = [];
-     let entryValues = [];
-     t.doesNotThrow(() => {
-       for (var [key, value] of mySet.entries()) {
-         entryKeys.push(key);
-         entryValues.push(value);
-       }
-     }, 'can iterate over set.entries() with for..of');
-     t.deepEquals(entryKeys.sort(), [0,1].sort(), 'entries iterator includes all keys (not preserving insertion order)');
-     t.deepEquals(entryValues.sort(), [0,1].sort(), 'entries iterator includes all values (not preserving insertion order)');
-     t.deepEquals(entryKeys, entryValues, 'entry keys/values are identical');
+    let entryKeys = [];
+    let entryValues = [];
+    t.doesNotThrow(() => {
+      for (var [key, value] of mySet.entries()) {
+        entryKeys.push(key);
+        entryValues.push(value);
+      }
+    }, 'can iterate over set.entries() with for..of');
+    t.deepEquals(entryKeys.sort(), [0,1].sort(), 'entries iterator includes all keys (not preserving insertion order)');
+    t.deepEquals(entryValues.sort(), [0,1].sort(), 'entries iterator includes all values (not preserving insertion order)');
+    t.deepEquals(entryKeys, entryValues, 'entry keys/values are identical');
 
-     t.end();
-   });
+    t.end();
+  });
 
-   test(`test ${setType} iteration with .forEach()`, (assert) => {
-     var mySet = new Set();
-     mySet.add(0);
-     mySet.add(1);
+  test(`test ${setType} iteration with .forEach()`, (assert) => {
+    var mySet = new Set();
+    mySet.add(0);
+    mySet.add(1);
 
-     let values = [];
-     assert.doesNotThrow(() => {
-       mySet.forEach(function(value) {
-         values.push(value);
-       });
-     }, 'can iterate over set object with .forEach()');
-     assert.deepEquals(values.sort(), [0,1].sort(), 'object iterator includes all values (not preserving insertion order)');
+    let values = [];
+    assert.doesNotThrow(() => {
+      mySet.forEach(function(value) {
+        values.push(value);
+      });
+    }, 'can iterate over set object with .forEach()');
+    assert.deepEquals(values.sort(), [0,1].sort(), 'object iterator includes all values (not preserving insertion order)');
 
-     assert.end();
-   });
+    assert.end();
+  });
 
-   test(`test ${setType} relation with Array objects`, (assert) => {
-     var valArray = ['value1', 'value2'];
-     var mySet;
+  test(`test ${setType} relation with Array objects`, (assert) => {
+    var valArray = ['value1', 'value2'];
+    var mySet;
 
-     assert.doesNotThrow(() => {mySet = new Set(valArray)}, 'can create set from key-value pair array');
+    assert.doesNotThrow(() => {mySet = new Set(valArray)}, 'can create set from key-value pair array');
 
-     assert.doesNotThrow(() => {var spreadArray = [...mySet]}, 'can create Array from set using spread syntax');
+    assert.doesNotThrow(() => {var spreadArray = [...mySet]}, 'can create Array from set using spread syntax');
 
-     let setArray;
-     assert.doesNotThrow(() => {setArray = Array.from(mySet)}, 'can create Array from set object');
-     assert.deepEquals(setArray.sort(), valArray.sort(), 'array from set object has all values (not preserving insertion order)');
+    let setArray;
+    assert.doesNotThrow(() => {setArray = Array.from(mySet)}, 'can create Array from set object');
+    assert.deepEquals(setArray.sort(), valArray.sort(), 'array from set object has all values (not preserving insertion order)');
 
-     let entryArray;
-     assert.doesNotThrow(() => {entryArray = Array.from(mySet.entries())}, 'can create Array from set.entries()');
-     assert.deepEquals(entryArray.sort(), [['value1','value1'], ['value2', 'value2']].sort(), 'array from set.entries() has all value-value pairs (not preserving insertion order)');
+    let entryArray;
+    assert.doesNotThrow(() => {entryArray = Array.from(mySet.entries())}, 'can create Array from set.entries()');
+    assert.deepEquals(entryArray.sort(), [['value1','value1'], ['value2', 'value2']].sort(), 'array from set.entries() has all value-value pairs (not preserving insertion order)');
 
-     let keyArray;
-     assert.doesNotThrow(() => {keyArray = Array.from(mySet.keys())}, 'can create Array from set.keys()');
-     assert.deepEquals(keyArray.sort(), ["value1", "value2"].sort(), 'array from set.keys() has all values (not preserving insertion order)');
+    let keyArray;
+    assert.doesNotThrow(() => {keyArray = Array.from(mySet.keys())}, 'can create Array from set.keys()');
+    assert.deepEquals(keyArray.sort(), ["value1", "value2"].sort(), 'array from set.keys() has all values (not preserving insertion order)');
 
-     let valueArray;
-     assert.doesNotThrow(() => {valueArray = Array.from(mySet.values())}, 'can create Array from set.values()');
-     assert.deepEquals(valueArray.sort(), ["value1", "value2"].sort(), 'array from set.values() has all values (not preserving insertion order)');
+    let valueArray;
+    assert.doesNotThrow(() => {valueArray = Array.from(mySet.values())}, 'can create Array from set.values()');
+    assert.deepEquals(valueArray.sort(), ["value1", "value2"].sort(), 'array from set.values() has all values (not preserving insertion order)');
 
-     assert.end();
-   });
+    assert.end();
+  });
 
 })
