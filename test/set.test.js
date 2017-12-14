@@ -1,6 +1,6 @@
 var test = require('tape');
 
-[['builtIn-javascript', Set], ['node-native-set', require('../index.js')]].forEach(([setType, Set]) => {
+[['builtIn-js', Set], ['node-native-set', require('../index.js')]].forEach(([setType, Set]) => {
   test(`test ${setType} constructor`, (t) => {
     t.doesNotThrow(() => {new Set()}, 'can construct an empty new Set()');
     t.doesNotThrow(() => {new Set(null)}, 'can construct with null'); //
@@ -42,6 +42,16 @@ var test = require('tape');
     t.end();
   });
 
+  test(`test ${setType} has method`, (assert) => {
+    let mySet = new Set();
+    mySet.add(0);
+    mySet.add(1);
+    assert.equal(mySet.has(1), true, 'has(value) returns true when set has value');
+    assert.equal(mySet.has(5), false, 'has(value) returns false for a nonexistent key');
+    assert.equal(mySet.has({}), false, 'has(value) returns false for nonidentical keys');
+    assert.end();
+  });
+
   test(`test ${setType} delete method`, (t) => {
     let mySet = new Set();
     mySet.add(0);
@@ -57,15 +67,19 @@ var test = require('tape');
     t.end();
   });
 
-    test(`test ${mapType} clear method`, (assert) => {
-      let m = new Map([[1,2],[3,4]]);
-      assert.equal(m.size, 2, 'before clearing map has size > 0');
-      assert.doesNotThrow(() => {m.clear()}, 'nonempty map can be cleared');
-      assert.equal(m.size, 0, 'after clearing map has size == 0');
-      let empty = new Map();
-      assert.doesNotThrow(() => {empty.clear()}, 'empty map can be cleared');
-      assert.equal(empty.size, 0, 'after clearing map has size == 0');
-      assert.end();
+    test(`test ${setType} clear method`, (t) => {
+      let mySet = new Set();
+      mySet.add(0);
+      mySet.add(1);
+      const startSize = mySet.size;
+
+      t.equal(mySet.size, 2, 'before clearing set has size > 0');
+      t.doesNotThrow(() => {mySet.clear()}, 'nonempty set can be cleared');
+      t.equal(mySet.size, 0, 'after clearing set has size == 0');
+      let empty = new Set();
+      t.doesNotThrow(() => {empty.clear()}, 'empty set can be cleared');
+      t.equal(empty.size, 0, 'after clearing set has size == 0');
+      t.end();
     });
 
   test(`test ${setType} iteration with for..of`, (t) => {
