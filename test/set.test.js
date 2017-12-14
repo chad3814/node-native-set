@@ -103,6 +103,33 @@ var test = require('tape');
      assert.end();
    });
 
+   test(`test ${setType} relation with Array objects`, (assert) => {
+     var valArray = ['value1', 'value2'];
+     var mySet;
+
+     assert.doesNotThrow(() => {mySet = new Set(valArray)}, 'can create set from key-value pair array');
+
+     assert.doesNotThrow(() => {var spreadArray = [...mySet]}, 'can create Array from set using spread syntax');
+
+     let setArray;
+     assert.doesNotThrow(() => {setArray = Array.from(mySet)}, 'can create Array from set object');
+     assert.deepEquals(setArray.sort(), valArray.sort(), 'array from set object has all values (not preserving insertion order)');
+
+     let entryArray;
+     assert.doesNotThrow(() => {entryArray = Array.from(mySet.entries())}, 'can create Array from set.entries()');
+     assert.deepEquals(entryArray.sort(), [['value1','value1'], ['value2', 'value2']].sort(), 'array from set.entries() has all value-value pairs (not preserving insertion order)');
+
+     let keyArray;
+     assert.doesNotThrow(() => {keyArray = Array.from(mySet.keys())}, 'can create Array from set.keys()');
+     assert.deepEquals(keyArray.sort(), ["value1", "value2"].sort(), 'array from set.keys() has all values (not preserving insertion order)');
+
+     let valueArray;
+     assert.doesNotThrow(() => {valueArray = Array.from(mySet.values())}, 'can create Array from set.values()');
+     assert.deepEquals(valueArray.sort(), ["value1", "value2"].sort(), 'array from set.values() has all values (not preserving insertion order)');
+
+     assert.end();
+   });
+
 })
 // ```
 // > var s;
