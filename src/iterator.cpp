@@ -72,12 +72,14 @@ NAN_METHOD(SingleNodeIterator::Next) {
         return;
     }
 
-    if (iter->_type == VALUE_TYPE) {
-        obj->Set(value, iter->_iter->GetLocalValue());
+    if (iter->_type == KEY_TYPE) {
+        obj->Set(value, iter->_iter->GetLocal());
+    } else if (iter->_type == VALUE_TYPE) {
+        obj->Set(value, iter->_iter->GetLocal());
     } else {
         arr = Nan::New<Array>(2);
-        arr->Set(0, iter->_iter->GetLocalValue());
-        arr->Set(1, iter->_iter->GetLocalValue());
+        arr->Set(0, iter->_iter->GetLocal());
+        arr->Set(1, iter->_iter->GetLocal());
         obj->Set(value, arr);
     }
     obj->Set(done, Nan::False());
