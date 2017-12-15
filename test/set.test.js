@@ -46,10 +46,10 @@ var test = require('tape');
     let mySet = new Set();
     mySet.add(0);
     mySet.add(1);
-    assert.equal(mySet.has(1), true, 'has(value) returns true when set has value');
-    assert.equal(mySet.has(5), false, 'has(value) returns false for a nonexistent key');
+    assert.ok(mySet.has(1), 'has(value) returns true when set has value');
+    assert.notOk(mySet.has(5), 'has(value) returns false for a nonexistent key');
     mySet.add({});
-    assert.equal(mySet.has({}), false, 'has(value) returns false for nonidentical keys');
+    assert.notOk(mySet.has({}), 'has(value) returns false for nonidentical keys');
     assert.end();
   });
 
