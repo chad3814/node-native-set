@@ -48,6 +48,7 @@ var test = require('tape');
     mySet.add(1);
     assert.equal(mySet.has(1), true, 'has(value) returns true when set has value');
     assert.equal(mySet.has(5), false, 'has(value) returns false for a nonexistent key');
+    mySet.add({});
     assert.equal(mySet.has({}), false, 'has(value) returns false for nonidentical keys');
     assert.end();
   });
@@ -147,7 +148,7 @@ var test = require('tape');
     var valArray = ['value1', 'value2'];
     var mySet;
 
-    assert.doesNotThrow(() => {mySet = new Set(valArray)}, 'can create set from key-value pair array');
+    assert.doesNotThrow(() => {mySet = new Set(valArray)}, 'can create set from values');
 
     assert.doesNotThrow(() => {var spreadArray = [...mySet]}, 'can create Array from set using spread syntax');
 
