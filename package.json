@@ -20,9 +20,16 @@
   "license": "MIT",
   "scripts": {
     "install": "node-gyp configure build",
-    "test": "runtests test/*.js"
+    "test": "tape test/*.js | tap-spec"
   },
   "dependencies": {
     "nan": "^2.1.0"
+  },
+  "devDependencies": {
+    "collections": "^1.2.4",
+    "eslint": "^4.13.1",
+    "minimist": "1.2.0",
+    "tap-spec": "^4.1.1",
+    "tape": "4.2.2"
   }
 }
