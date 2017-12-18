@@ -55,8 +55,8 @@ set.size; // 0
 
 var setFromArray = new Set([1,2,3]);
 setFromArray.has(1); // true
-Array.from(setFromArray); // [1,2,3]
-[...setFromArray]; // [1,2,3]
+Array.from(setFromArray); // [1,2,3] (order may differ)
+[...setFromArray]; // [1,2,3] (order may differ)
 ```
 
 This package is made possible because of [Grokker](http://grokker.com/), one of the best places to work. If you are a JS developer looking for a new gig, send me an email at &#x5b;'chad', String.fromCharCode(64), 'grokker', String.fromCharCode(0x2e), 'com'&#x5d;.join('').
