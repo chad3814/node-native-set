@@ -7,6 +7,8 @@ outside of node and it is a lot faster than native JS implementations.
 As of 2.0.0, requires node.js 0.12 or later. If you are running
 node.js 0.10, stick with the 1.x.x.
 
+As of 3.6.0, es6-native-set implements @@iterator, so you can use all the iterable functions and operators.
+
 ### Usage
 
 ```javascript
@@ -50,6 +52,11 @@ iterator.next(); // { done: true, value: undefined }
 
 set.clear(); // undefined
 set.size; // 0
+
+var setFromArray = new Set([1,2,3]);
+setFromArray.has(1); // true
+Array.from(setFromArray); // [1,2,3]
+[...setFromArray]; // [1,2,3]
 ```
 
 This package is made possible because of [Grokker](http://grokker.com/), one of the best places to work. If you are a JS developer looking for a new gig, send me an email at &#x5b;'chad', String.fromCharCode(64), 'grokker', String.fromCharCode(0x2e), 'com'&#x5d;.join('').
