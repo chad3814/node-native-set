@@ -173,3 +173,39 @@ const test = require('tape');
   });
 
 });
+
+
+test('test readme code sample', (assert) => {
+  const Set = require('../index.js');
+  let set;
+  assert.doesNotThrow(() => {set = new Set();}, 'can construct new empty Set');
+
+  assert.doesNotThrow(() => {set.add('raz').add('dwa').add({});}, 'can chain add calls to add strings and object');
+  assert.equal(set.size, 3, 'after adding three elements set size is 3');
+  assert.ok(set.has('raz'), 'set has added element');
+  assert.notOk(set.has('foo'), 'set does not have nonexistent element');
+  assert.equals(set.add('foo'), set, 'call to add returns the set object');
+  assert.equals(set.size, 4, 'calling add increments set size by 1');
+  assert.ok(set.has('foo'), 'set has existing element');
+  assert.ok(set.has('dwa'), 'set has existing element');
+  assert.ok(set.delete('dwa'), 'calling delete on existing element returns true');
+  assert.equals(set.size, 3, 'calling delete on existing element decrements set size by 1');
+
+  const elements = [];
+  set.forEach(function (value) {
+    elements.push(value);
+  });
+  assert.equals(elements.filter((v) => ['raz', '[object Object]', 'foo'].indexOf(v.toString()) === -1).length, 0, 'iteration with .forEach includes all values (not preserving insertion order)');
+
+  const iterator = set.values();
+
+  assert.doesNotThrow(() => {iterator.next();}, 'iterator returned by .values() has a next method');
+  assert.equals(iterator.next().done, false, 'iterator returns object with done property set to false while not finished');
+  assert.ok(set.has(iterator.next().value), 'iterator returns set element as the value property ');
+  assert.ok(iterator.next().done && iterator.next().value === undefined, 'done is true and value is undefined when iteration has finished');
+
+  assert.doesNotThrow(() => {set.clear();}, 'can clear set');
+  assert.equal(set.size, 0, 'after clearing set size is 0');
+
+  assert.end();
+});
