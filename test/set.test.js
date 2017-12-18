@@ -207,5 +207,11 @@ test('test readme code sample', (assert) => {
   assert.doesNotThrow(() => {set.clear();}, 'can clear set');
   assert.equal(set.size, 0, 'after clearing set size is 0');
 
+  let setFromArray;
+  assert.doesNotThrow(() => {setFromArray = new Set([1,2,3]);}, 'can create set from array');
+  assert.ok(setFromArray.has(1), 'set from array has element of array');
+  assert.deepEquals(Array.from(setFromArray).sort(), [1,2,3], 'can use Array.from() to create array from set (not preserving insertion order)');
+  assert.deepEquals([...setFromArray].sort(), [1,2,3], 'can use spread syntax to create array from set (not preserving insertion order)');
+
   assert.end();
 });
